@@ -70,6 +70,12 @@ export const path = () => {
 		return elem
 	}
 
+	elem.l = (x, y) => {
+		const prev = elem.getAttribute('d') || ''
+		elem.setAttribute('d', `${prev} l ${x} ${y}`)
+		return elem
+	}
+
 	elem.a = (rx, ry, x, y, sweep=1, xRot=0, large=0) => {
 		const prev = elem.getAttribute('d') || ''
 		elem.setAttribute('d', `${prev} a ${rx} ${ry} ${xRot} ${large} ${sweep} ${x} ${y}`)

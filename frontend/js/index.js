@@ -7,7 +7,8 @@ svg()
 	triangle({
 		base: 200,
 		vertexRad: 10,
-		sideRad: 200,
+		sideRad: 50,
+		extrusion: 70,
 	})
 ])
 .renderTo($('main'))
