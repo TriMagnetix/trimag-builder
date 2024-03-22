@@ -1,23 +1,21 @@
 import { $ } from './modules/common.js'
 import { svg, path } from './modules/svg-lib.js'
-import { triangle, invertedTriangle } from './modules/gates.js'
+import { triangle, invertedTriangle, arrangement } from './modules/gates.js'
 
 svg()
+.width(1000)
+.height(1000)
 .shapes([
-	invertedTriangle({
-		position: { x: 0, y: 0 }, 
-		base: 200,
-		vertexRad: 10,
-		sideRad: 50,
-		extrusion: 70,
-	}),
-	triangle({
-		position: { x: 0, y: 0.5 * 200 * Math.sqrt(3) + 10 }, 
-		base: 200,
-		vertexRad: 10,
-		sideRad: 50,
-		extrusion: 70,
+	arrangement({
+		positionGrid: [[0, 1, 0],[0, 1, 0], [1, 0, 1]],
+		spacing: 10,
+		triangleSpecs: {
+			width: 200,
+			vertexRad: 10,
+			sideRad: 50,
+			extrusion: 70,
+		},
 	}),
 ])
 .renderTo($('main'))
-.fitContent()
+//.fitContent()
