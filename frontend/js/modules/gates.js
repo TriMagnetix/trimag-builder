@@ -1,6 +1,7 @@
 import { svg, group, path, circle } from './svg-lib.js'
 
 export const triangle = ({
+	position: {x, y},
 	base: b,
 	vertexRad: vr,
 	sideRad: sr,
@@ -14,6 +15,7 @@ export const triangle = ({
 	return group()
 		.shapes([
 			path()
+			.M(x, y)
 			.m(w / 2 - vr, vr)
 			.a(vr, vr, 2 * vr, 0)
 			.l(0, e)
@@ -41,6 +43,7 @@ export const triangle = ({
 }
 
 export const invertedTriangle = ({
+	position: {x, y},
 	base: b,
 	vertexRad: vr,
 	sideRad: sr,
@@ -54,6 +57,7 @@ export const invertedTriangle = ({
 	return group()
 		.shapes([
 			path()
+			.M(x, y)
 			.m(w / 2 - vr, h - vr)
 			.a(vr, vr, 2 * vr, 0, 0)
 			.l(0, -e)
