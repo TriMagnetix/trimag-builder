@@ -3,11 +3,14 @@ import { svg, path } from './modules/svg-lib.js'
 import { triangle, invertedTriangle, arrangement } from './modules/gates.js'
 
 svg()
-.width(1000)
-.height(1000)
 .shapes([
 	arrangement({
-		positionGrid: [[0, 1, 0],[0, 1, 0], [1, 0, 1]],
+		positionGrid: [
+			[0, 1, 0, 1, 0, 1],
+			[0, 1, 0, 1, 0, 1],
+			[1, 0, 1, 0, 1, 0],
+			[1, 0, 1, 0, 1, 0],
+		],
 		spacing: 10,
 		triangleSpecs: {
 			width: 200,
@@ -18,4 +21,4 @@ svg()
 	}),
 ])
 .renderTo($('main'))
-//.fitContent()
+.fitContent()

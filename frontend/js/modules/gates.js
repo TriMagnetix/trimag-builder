@@ -93,29 +93,52 @@ export const arrangement = ({
 }) => {
 	const h = 0.5 * w * Math.sqrt(3)
 	const shapes = []
+	let br = 0 // blank rows
+	let bc = 0 // blank columns
 
+	// count blank rows
+	for (let i = 0; i < pg.length; i++) {
+		let empty = true
+
+		for (let j = 0; j < pg[i].length; j++)
+			empty = empty && pg[i][j] == 0
+
+		if (!empty) break
+
+		br++
+	}
+
+	// count blank columns
+	for (let j = 0; j < pg[0].length; j++) {
+		let empty = true
+
+		for (let i = 0; i < pg.length; i++)
+			empty = empty && pg[i][j] == 0
+
+		if (!empty) break
+
+		bc++
+	}
+
+	// draw triangles
 	pg.forEach((row, i) => row.forEach((col, j) => col && shapes.push(
-		i % 2 ?
-			triangle({
-				position: {
-					// TODO: fix
-					//x: w * j + 0.5 * Math.sqrt(3) * s * j,
-					//y: h * i + s * Math.ceil(i / 2) + 0.5 * s * Math.floor(i / 2),
-					x: w * j,
-					y: h * i,
-				},
-				...triangleSpecs
-			}) :
-			invertedTriangle({
-				position: {
-					// TODO: fix
-					//x: w * j + 0.5 * Math.sqrt(3) * s * j,
-					//y: h * i + s * Math.ceil(i / 2),
-					x: w * j,
-					y: h * i,
-				},
-				...triangleSpecs
-			})
+		(i % 2 ? triangle : invertedTriangle)({
+			position: {
+				x: w * j
+					+ Math.sqrt(3) * j * (vr + 0.5 * s)
+					- Math.sqrt(3) * bc * (vr + 0.5 * s)
+					- (j - bc) * 2 * vr
+					- w * bc,
+				y: h * i
+					+ i % 2 * (2 * vr + s)
+					+ Math.floor(i / 2) * (3 * vr + 1.5 * s)
+					- br % 2 * (2 * vr + s)
+					- Math.floor(br / 2) * (3 * vr + 1.5 * s)
+					- (i - br) * 2 * vr
+					- h * br,
+			},
+			...triangleSpecs
+		})
 	)))
 
 	return group()
