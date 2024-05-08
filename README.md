@@ -1,3 +1,3 @@
 # trimag builder
 
-a frontend for building logic gates for trimagnetix systems.
+a framework for building logic gates for trimagnetix systems.

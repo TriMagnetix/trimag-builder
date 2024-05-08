@@ -2,6 +2,17 @@ import { $ } from './modules/common.js'
 import { svg, path } from './modules/svg-lib.js'
 import { triangle, invertedTriangle, arrangement } from './modules/gates.js'
 
+const download = () => {
+	const svg = $('main').innerHTML
+	const a = document.createElement('a')
+
+	a.setAttribute('href', `data:image/svg;charset=utf-8,${encodeURIComponent(svg)}`)
+	a.setAttribute('download', 'gate-array.svg')
+	document.body.appendChild(a)
+	a.click()
+	document.body.removeChild(a)
+}
+
 svg()
 .shapes([
 	arrangement({
@@ -22,3 +33,5 @@ svg()
 ])
 .renderTo($('main'))
 .fitContent()
+
+download()
