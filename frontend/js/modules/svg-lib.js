@@ -1,6 +1,8 @@
 export const svg = () => {
 	const elem = document.createElement('svg')
 	let _rendered
+
+	elem.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 	
 	elem.width = n => {
 		elem.setAttribute('width', n)
@@ -18,10 +20,7 @@ export const svg = () => {
 	}
 
 	elem.renderTo = targetElem => {
-		const temp = document.createElement('div')
-
-		temp.append(elem)
-		targetElem.innerHTML = temp.innerHTML
+		targetElem.innerHTML = elem.outerHTML
 
 		_rendered = targetElem.children[0]
 
@@ -114,4 +113,15 @@ export const circle = () => {
 	}
 
 	return elem
+}
+
+export const svg2bitmap = svg => {
+	const image = new Image()
+
+	const bitmap = new Promise(resolve => {
+		image.onload = () => resolve(createImageBitmap(image))
+		image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg.outerHTML)}`
+	})
+
+	return bitmap
 }
