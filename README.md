@@ -8,6 +8,7 @@ a framework for building logic gates for trimagnetix systems.
 
 - [x] add coordinates to graph
 - [x] export as nmesh
+- [ ] export as neutral mesh
 - [ ] extrude
 - [ ] fix binary image
 - [ ] support different regions in nmesh export
