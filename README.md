@@ -6,15 +6,15 @@ a framework for building logic gates for trimagnetix systems.
 
 ### mesh library
 
-[ ] add coordinates to graph
-[ ] export as nmesh
-[ ] extrude
-[ ] fix binary image
-[ ] render mesh
+- [ ] add coordinates to graph
+- [ ] export as nmesh
+- [ ] extrude
+- [ ] fix binary image
+- [ ] render mesh
 
 ### simulation automation
 
-[ ] define pinned regions and directions
-[ ] create nmag script
-[ ] run simulations
-[ ] visualize results
+- [ ] define pinned regions and directions
+- [ ] create nmag script
+- [ ] run simulations
+- [ ] visualize results
