@@ -1,6 +1,13 @@
 export const mesh = () => {
 
-	// Each index is a verex, and each element is a neigboring vertex
+	/*
+	 *	Each element is a vertex with the following schema:
+	 *	{
+	 *		x: <num>,
+	 *		y: <num>,
+	 *		neighbors: [<num>, ...]
+	 *	}
+	 */
 	const graph = []
 
 	graph.fromBitmap = bitmap => {
@@ -41,7 +48,7 @@ export const mesh = () => {
 				if (!col) return // TODO: invert condition when binary image is fixed
 				
 				vertexIndexMap[i][j] = graph.length
-				graph.push([])
+				graph.push({x: j, y: i, neighbors: []})
 			})
 		)
 
@@ -61,7 +68,7 @@ export const mesh = () => {
 						if (j + dj >= bitmap.width) return
 						if (!binaryImage[i + di][j + dj]) return
 
-						graph[vertexIdx].push(vertexIndexMap[i + di][j + dj])
+						graph[vertexIdx].neighbors.push(vertexIndexMap[i + di][j + dj])
 					})
 				)
 			})

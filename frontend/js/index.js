@@ -36,6 +36,10 @@ const triangles =
 	.renderTo($('main'))
 	.fitContent()
 
-mesh()
-.fromBitmap(await svg2bitmap(triangles))
+const triangleMesh =
+	mesh()
+	.fromBitmap(await svg2bitmap(triangles))
+
+console.log(triangleMesh)
+
 //download()
