@@ -1,14 +1,15 @@
 import { $ } from './modules/common.js'
 import { svg, path, svg2bitmap } from './modules/svg-lib.js'
 import { triangle, invertedTriangle, arrangement } from './modules/gates.js'
-import { mesh } from './modules/mesh-lib.js'
+import { mesh, mesh2nmesh } from './modules/mesh-lib.js'
 
-const download = () => {
-	const svg = $('main').innerHTML
+const download = async (content, filename, type = 'data:text/plain;charset=utf-8') => {
+	const blob = new Blob([content], {type})
 	const a = document.createElement('a')
 
-	a.setAttribute('href', `data:image/svg;charset=utf-8,${encodeURIComponent(svg)}`)
-	a.setAttribute('download', 'gate-array.svg')
+	a.setAttribute('href', URL.createObjectURL(blob))
+	a.setAttribute('download', filename)
+	a.textContent = 'here';
 	document.body.appendChild(a)
 	a.click()
 	document.body.removeChild(a)
@@ -36,10 +37,12 @@ const triangles =
 	.renderTo($('main'))
 	.fitContent()
 
-const triangleMesh =
+const trianglesMesh =
 	mesh()
 	.fromBitmap(await svg2bitmap(triangles))
 
-console.log(triangleMesh)
+const trianglesNmesh = mesh2nmesh(trianglesMesh)
 
-//download()
+//console.log(trianglesNmesh)
+
+download(trianglesNmesh, 'triangles.nmesh')

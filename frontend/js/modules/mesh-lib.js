@@ -5,7 +5,9 @@ export const mesh = () => {
 	 *	{
 	 *		x: <num>,
 	 *		y: <num>,
-	 *		neighbors: [<num>, ...]
+	 *		z: <num>,
+	 *		neighbors: [<num>, ...],
+	 *		exterior: <bool>,
 	 *	}
 	 */
 	const graph = []
@@ -48,7 +50,7 @@ export const mesh = () => {
 				if (!col) return // TODO: invert condition when binary image is fixed
 				
 				vertexIndexMap[i][j] = graph.length
-				graph.push({x: j, y: i, neighbors: []})
+				graph.push({x: j, y: i, z: 0, neighbors: [], exterior: true})
 			})
 		)
 
@@ -78,4 +80,96 @@ export const mesh = () => {
 	}
 
 	return graph
+}
+
+// Convert mesh to Nmag mesh format (PYFEM mesh file v1.0)
+// https://nmag.readthedocs.io/en/latest/finite_element_mesh_generation.html#ascii-nmesh
+export const mesh2nmesh = mesh => {
+	const nmesh = {nodes: [], simplices: new Set(), surfaces: new Set(), periodic: []}
+
+	// Construct nodes
+	mesh.forEach(({x, y, z}) => nmesh.nodes.push(
+		[x, y, z]
+		.sort()
+		.join('\t')
+	))
+
+	// Construct simplices
+	mesh.forEach(({x, y, z, neighbors: n}, v) => {
+		if (n.length < 3) return
+
+		// TODO: add support for different regions
+		const region = 1;
+
+		for (let i = 0; i < n.length; i++) {
+			for (let j = i + 1; j < n.length; j++) {
+				for (let k = j + 1; k < n.length; k++) {
+					const simplex = [v, n[i], n[j], n[k]]
+					const simplexNodes = simplex.map(nodeIdx => mesh[nodeIdx])
+
+					// Must be 3d to be a simplex
+					if (
+						simplexNodes.every(node => node.x == x)
+						|| simplexNodes.every(node => node.y == y)
+						|| simplexNodes.every(node => node.z == z)
+					) continue
+
+					nmesh.simplices.add(
+						[region, ...simplex.sort()].join('\t')
+					)
+				}
+			}
+		}
+	})
+
+	// Construct surfaces
+	mesh.forEach(({x, y, z, neighbors: n}, v) => {
+		if (n.length < 3) return
+
+		// TODO: add support for different regions
+		const region1 = -1
+		const region2 = 1
+
+		for (let i = 0; i < n.length; i++) {
+			for (let j = i + 1; j < n.length; j++) {
+				const surface = [v, n[i], n[j]]
+				const surfaceNodes = surface.map(nodeIdx => mesh[nodeIdx])
+
+				// Must be 2d to be a surface
+				if (
+					[
+						surfaceNodes.every(node => node.x == x),
+						surfaceNodes.every(node => node.y == y),
+						surfaceNodes.every(node => node.z == z),
+					]
+					.reduce((acc, isConstrainedDim) => acc + isConstrainedDim) != 1
+				) continue
+
+				// Must be on the exterior to be a surface
+				if (
+					!surfaceNodes.every(node => node.exterior)
+				) continue
+
+				nmesh.surfaces.add(
+					[region1, region2, ...surface.sort()].join('\t')
+				)
+			}
+		}
+	})
+
+	// TODO: Support periodic identifications of points
+
+	// Render to text and return
+	return [
+		'# PYFEM mesh file version 1.0',
+		`# dim = 3\tnodes = ${nmesh.nodes.length}\tsimplices = ${nmesh.simplices.size}\tsurfaces = ${nmesh.surfaces.size}\tperiodic = ${nmesh.periodic.length}`,
+		nmesh.nodes.length,
+		...nmesh.nodes,
+		nmesh.simplices.size,
+		...nmesh.simplices,
+		nmesh.surfaces.size,
+		...nmesh.surfaces,
+		nmesh.periodic.length,
+		...nmesh.periodic,
+	].join('\n')
 }

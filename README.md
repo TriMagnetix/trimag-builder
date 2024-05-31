@@ -7,10 +7,12 @@ a framework for building logic gates for trimagnetix systems.
 ### mesh library
 
 - [x] add coordinates to graph
-- [ ] export as nmesh
+- [x] export as nmesh
 - [ ] extrude
 - [ ] fix binary image
+- [ ] support different regions in nmesh export
 - [ ] render mesh
+- [ ] support periodic nodes
 
 ### simulation automation
 
