@@ -1,7 +1,7 @@
 import { $ } from './modules/common.js'
 import { svg, path, svg2bitmap } from './modules/svg-lib.js'
 import { triangle, invertedTriangle, arrangement } from './modules/gates.js'
-import { mesh, mesh2nmesh } from './modules/mesh-lib.js'
+import { mesh, mesh2nmesh, mesh2neutralmesh } from './modules/mesh-lib.js'
 
 const download = async (content, filename, type = 'data:text/plain;charset=utf-8') => {
 	const blob = new Blob([content], {type})
@@ -37,12 +37,16 @@ const triangles =
 	.renderTo($('main'))
 	.fitContent()
 
+const trianglesBitmap = await svg2bitmap(triangles)
+
 const trianglesMesh =
 	mesh()
-	.fromBitmap(await svg2bitmap(triangles))
+	.fromBitmap(trianglesBitmap, 1)
 
-const trianglesNmesh = mesh2nmesh(trianglesMesh)
+//const trianglesNmesh = mesh2nmesh(trianglesMesh)
 
-//console.log(trianglesNmesh)
+//download(trianglesNmesh, 'triangles.nmesh')
 
-download(trianglesNmesh, 'triangles.nmesh')
+const trianglesNeutralmesh = mesh2neutralmesh(trianglesMesh)
+
+download(trianglesNeutralmesh, 'triangles.mesh')
