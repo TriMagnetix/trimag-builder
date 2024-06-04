@@ -88,113 +88,12 @@ export const mesh = () => {
 	return graph
 }
 
-// Convert mesh to Nmag mesh format (PYFEM mesh file v1.0)
-// https://nmag.readthedocs.io/en/latest/finite_element_mesh_generation.html#ascii-nmesh
-export const mesh2nmesh = mesh => {
-	const nmesh = {nodes: [], simplices: new Set(), surfaces: new Set(), periodic: []}
-
-	// Construct nodes
-	mesh.forEach(({x, y, z}) => nmesh.nodes.push(
-		[x, y, z]
-		.join('\t')
-	))
-
-	// Construct simplices
-	mesh.forEach(({x, y, z, neighbors: n}, v) => {
-		if (n.length < 3) return
-
-		// TODO: add support for different regions
-		const region = 1;
-
-		for (let i = 0; i < n.length; i++) {
-			for (let j = i + 1; j < n.length; j++) {
-				for (let k = j + 1; k < n.length; k++) {
-					const simplex = [v, n[i], n[j], n[k]]
-					const simplexNodes = simplex.map(nodeIdx => mesh[nodeIdx])
-
-					// Must be 3d to be a simplex
-					if (
-						simplexNodes.every(node => node.x == x)
-						|| simplexNodes.every(node => node.y == y)
-						|| simplexNodes.every(node => node.z == z)
-					) continue
-
-					nmesh.simplices.add(
-						[region, ...simplex.sort()].join('\t')
-					)
-				}
-			}
-		}
-	})
-
-	// Construct surfaces
-	mesh.forEach(({x, y, z, neighbors: n}, v) => {
-		if (n.length < 3) return
-
-		// TODO: add support for different regions
-		const region1 = -1
-		const region2 = 1
-
-		for (let i = 0; i < n.length; i++) {
-			for (let j = i + 1; j < n.length; j++) {
-				const surface = [v, n[i], n[j]]
-				const surfaceNodes = surface.map(nodeIdx => mesh[nodeIdx])
-
-				// Must be 2d to be a surface
-				if (
-					[
-						surfaceNodes.every(node => node.x == x),
-						surfaceNodes.every(node => node.y == y),
-						surfaceNodes.every(node => node.z == z),
-					]
-					.reduce((acc, isConstrainedDim) => acc + isConstrainedDim) != 1
-				) continue
-
-				// Must be on the exterior to be a surface
-				if (
-					!surfaceNodes.every(node => node.exterior)
-				) continue
-
-				nmesh.surfaces.add(
-					[region1, region2, ...surface.sort()].join('\t')
-				)
-			}
-		}
-	})
-
-	// TODO: Support periodic identifications of points
-
-	// Render to text and return
-	return [
-		'# PYFEM mesh file version 1.0',
-		`# dim = 3\tnodes = ${nmesh.nodes.length}\tsimplices = ${nmesh.simplices.size}\tsurfaces = ${nmesh.surfaces.size}\tperiodic = ${nmesh.periodic.length}`,
-		nmesh.nodes.length,
-		...nmesh.nodes,
-		nmesh.simplices.size,
-		...nmesh.simplices,
-		nmesh.surfaces.size,
-		...nmesh.surfaces,
-		nmesh.periodic.length,
-		...nmesh.periodic,
-	].join('\n')
-}
-
-// Convert mesh to NGSolve/Netgen neutral mesh format
-export const mesh2neutralmesh = mesh => {
-	const neutralMesh = {points: [], volumeElements: new Set(), surfaceElements: new Set()}
-
-	// Construct points
-	mesh.forEach(({x, y, z}) => neutralMesh.points.push(
-		[x, y, z]
-		.join('\t')
-	))
+const _getVolumes = mesh => {
+	const result = []
 
 	// Construct volume elements
 	mesh.forEach(({x, y, z, neighbors: n}, v) => {
 		if (n.length < 3) return
-
-		// TODO: add support for different regions
-		const region = 1;
 
 		for (let i = 0; i < n.length; i++) {
 			for (let j = i + 1; j < n.length; j++) {
@@ -209,20 +108,21 @@ export const mesh2neutralmesh = mesh => {
 						|| volumeElementNodes.every(node => node.z == z)
 					) continue
 
-					neutralMesh.volumeElements.add(
-						[region, ...volumeElement.sort().map(idx => idx + 1)].join('\t')
-					)
+					result.push(volumeElement)
 				}
 			}
 		}
 	})
 
+	return result
+}
+
+const _getSurfaces = mesh => {
+	const result = []
+
 	// Construct surface elements
 	mesh.forEach(({x, y, z, neighbors: n}, v) => {
 		if (n.length < 3) return
-
-		// TODO: add support for different regions
-		const region1 = 1
 
 		for (let i = 0; i < n.length; i++) {
 			for (let j = i + 1; j < n.length; j++) {
@@ -244,20 +144,73 @@ export const mesh2neutralmesh = mesh => {
 					.reduce((acc, isConstrainedDim) => acc + isConstrainedDim) != 1
 				) continue
 
-				neutralMesh.surfaceElements.add(
-					[region1, ...surfaceElement.sort().map(idx => idx + 1)].join('\t')
-				)
+				result.push(surfaceElement)
 			}
 		}
 	})
+
+	return result
+}
+
+// Convert mesh to Nmag mesh format (PYFEM mesh file v1.0)
+// https://nmag.readthedocs.io/en/latest/finite_element_mesh_generation.html#ascii-nmesh
+export const mesh2nmesh = mesh => {
+
+	// TODO: add support for different regions
+	const region1 = 1
+	const region2 = -1
+
+	const nmesh = {
+		nodes: mesh.map(({x, y, z}) => [x, y, z].join('\t')),
+		simplices: _getVolumes(mesh).map(
+			v => [region1, ...v].join('\t')
+		),
+		surfaces: _getSurfaces(mesh).map(
+			s => [region1, region2, ...s].join('\t')
+		),
+		periodic: [],
+	}
+
+	// Render to text and return
+	return [
+		'# PYFEM mesh file version 1.0',
+		`# dim = 3\tnodes = ${nmesh.nodes.length}\tsimplices = ${nmesh.simplices.length}\tsurfaces = ${nmesh.surfaces.length}\tperiodic = ${nmesh.periodic.length}`,
+		nmesh.nodes.length,
+		...nmesh.nodes,
+		nmesh.simplices.length,
+		...nmesh.simplices,
+		nmesh.surfaces.length,
+		...nmesh.surfaces,
+		nmesh.periodic.length,
+		...nmesh.periodic,
+	].join('\n')
+}
+
+// Convert mesh to NGSolve/Netgen neutral mesh format
+export const mesh2neutralmesh = mesh => {
+
+	// TODO: add support for different regions
+	const region = 1;
+
+	const neutralMesh = {
+		points: mesh.map(
+			({x, y, z}) => [x, y, z].join('\t')
+		),
+		volumeElements: _getVolumes(mesh).map(
+			v => [region, ...v.map(idx => idx + 1)].join('\t')
+		),
+		surfaceElements: _getSurfaces(mesh).map(
+			s => [region, ...s.map(idx => idx + 1)].join('\t')
+		)
+	}
 
 	// Render to text and return
 	return [
 		neutralMesh.points.length,
 		...neutralMesh.points,
-		neutralMesh.volumeElements.size,
+		neutralMesh.volumeElements.length,
 		...neutralMesh.volumeElements,
-		neutralMesh.surfaceElements.size,
+		neutralMesh.surfaceElements.length,
 		...neutralMesh.surfaceElements,
 	].join('\n')
 }
