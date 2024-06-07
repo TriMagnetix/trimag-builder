@@ -43,10 +43,10 @@ const trianglesMesh =
 	mesh()
 	.fromBitmap(trianglesBitmap)
 
-const trianglesNmesh = mesh2nmesh(trianglesMesh)
+//const trianglesNmesh = mesh2nmesh(trianglesMesh)
 
-download(trianglesNmesh, 'triangles.nmesh')
+//download(trianglesNmesh, 'triangles.nmesh')
 
 const trianglesNeutralmesh = mesh2neutralmesh(trianglesMesh)
 
-//download(trianglesNeutralmesh, 'triangles.mesh')
+download(trianglesNeutralmesh, 'triangles.mesh')

@@ -53,7 +53,7 @@ export const mesh = () => {
 				if (!col) return // TODO: invert condition when binary image is fixed
 				
 				vertexIndexMap[i][j] = graph.length
-				graph.push({x: j, y: i, z: 0, neighbors: [], exterior: true})
+				graph.push({x: j, y: i, z: 0, idx: graph.length, neighbors: [], exterior: true})
 			})
 		)
 
@@ -61,24 +61,34 @@ export const mesh = () => {
 		binaryImage.forEach((row, i) =>
 			row.forEach((col, j) => {
 				if (!col) return // TODO: invert condition when binary image is fixed
-				if (i % 2 != j % 2) return
 
-				const vertexIdx = vertexIndexMap[i][j]
-				let neighbors = []
+				const node = graph[vertexIndexMap[i][j]]
 
-				Array(-1, 0, 1).forEach(di => {
-					Array(-1, 0, 1).forEach(dj => {
-						if (di == dj) return
-						if (di == -dj) return
-						if (i + di < 0) return
-						if (i + di >= canvas.height) return
-						if (j + dj < 0) return
-						if (j + dj >= canvas.width) return
-						if (!binaryImage[i + di][j + dj]) return
+				node.surroundingNodes = [
+					vertexIndexMap[i - 1]?.[j - 1],
+					vertexIndexMap[i - 1]?.[j],
+					vertexIndexMap[i - 1]?.[j + 1],
+					vertexIndexMap[i][j - 1],
+					vertexIndexMap[i][j + 1],
+					vertexIndexMap[i + 1]?.[j - 1],
+					vertexIndexMap[i + 1]?.[j],
+					vertexIndexMap[i + 1]?.[j + 1],
+				].filter(idx => idx != undefined && idx != -1)
 
-						graph[vertexIdx].neighbors.push(vertexIndexMap[i + di][j + dj])
-					})
-				})
+				if (
+					node.surroundingNodes.length == 8
+					&& i % 2 != j % 2
+				) return
+
+				node.neighbors = [
+					vertexIndexMap[i - 1]?.[j],
+					vertexIndexMap[i][j - 1],
+					vertexIndexMap[i][j + 1],
+					vertexIndexMap[i + 1]?.[j],
+				].filter(idx =>
+					idx != undefined
+					&& idx != -1
+				)
 			})
 		)
 
@@ -122,7 +132,7 @@ const _getSurfaces = mesh => {
 
 	// Construct surface elements
 	mesh.forEach(({x, y, z, neighbors: n}, v) => {
-		if (n.length < 3) return
+		if (n.length < 2) return
 
 		for (let i = 0; i < n.length; i++) {
 			for (let j = i + 1; j < n.length; j++) {
