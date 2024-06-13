@@ -64,32 +64,80 @@ export const mesh = () => {
 
 				const node = graph[vertexIndexMap[i][j]]
 
-				node.surroundingNodes = [
-					vertexIndexMap[i - 1]?.[j - 1],
-					vertexIndexMap[i - 1]?.[j],
-					vertexIndexMap[i - 1]?.[j + 1],
-					vertexIndexMap[i][j - 1],
-					vertexIndexMap[i][j + 1],
-					vertexIndexMap[i + 1]?.[j - 1],
-					vertexIndexMap[i + 1]?.[j],
-					vertexIndexMap[i + 1]?.[j + 1],
-				].filter(idx => idx != undefined && idx != -1)
+				const neighborMap = {
+					topLeft: vertexIndexMap[i - 1]?.[j - 1],
+					top: vertexIndexMap[i - 1]?.[j],
+					topRight: vertexIndexMap[i - 1]?.[j + 1],
+					left: vertexIndexMap[i][j - 1],
+					right: vertexIndexMap[i][j + 1],
+					bottomLeft: vertexIndexMap[i + 1]?.[j - 1],
+					bottom: vertexIndexMap[i + 1]?.[j],
+					bottomRight: vertexIndexMap[i + 1]?.[j + 1],
+				}
+
+				node.surroundingNodes = Object.values(neighborMap)
+					.filter(idx => idx != undefined && idx != -1)
 
 				if (
 					node.surroundingNodes.length == 8
 					&& i % 2 != j % 2
 				) return
 
+				const { topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight } = neighborMap
+
 				node.neighbors = [
-					vertexIndexMap[i - 1]?.[j],
-					vertexIndexMap[i][j - 1],
-					vertexIndexMap[i][j + 1],
-					vertexIndexMap[i + 1]?.[j],
+					left,
+					right,
+					top,
+					bottom,
 				].filter(idx =>
 					idx != undefined
+					&& idx != false
 					&& idx != -1
 				)
 			})
+		)
+
+		// Remove redundant nodes
+		binaryImage.forEach((row, i) =>
+			row.forEach((col, j) => {
+				if (!col) return // TODO: invert condition when binary image is fixed
+
+				const node = graph[vertexIndexMap[i][j]]
+
+				const neighborMap = {
+					topLeft: vertexIndexMap[i - 1]?.[j - 1],
+					top: vertexIndexMap[i - 1]?.[j],
+					topRight: vertexIndexMap[i - 1]?.[j + 1],
+					left: vertexIndexMap[i][j - 1],
+					right: vertexIndexMap[i][j + 1],
+					bottomLeft: vertexIndexMap[i + 1]?.[j - 1],
+					bottom: vertexIndexMap[i + 1]?.[j],
+					bottomRight: vertexIndexMap[i + 1]?.[j + 1],
+				}
+
+				if (i % 2 == j % 2) return
+
+				const { topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight } = neighborMap
+
+				const remove = {
+					[left]:
+						(!graph[top] || graph[left]?.neighbors.includes(topLeft))
+						&& (!graph[bottom] || graph[left]?.neighbors.includes(bottomLeft)),
+					[right]:
+						(!graph[top] || graph[right]?.neighbors.includes(topRight))
+						&& (!graph[bottom] || graph[right]?.neighbors.includes(bottomRight)),
+					[top]:
+						(!graph[left] || graph[top]?.neighbors.includes(topLeft))
+						&& (!graph[right] || graph[top]?.neighbors.includes(topRight)),
+					[bottom]:
+						(!graph[left] || graph[bottom]?.neighbors.includes(bottomLeft))
+						&& (!graph[right] || graph[bottom]?.neighbors.includes(bottomRight)),
+				}
+
+				node.neighbors = node.neighbors.filter(n => !remove[n])
+			})
+
 		)
 
 		return graph
