@@ -21,3 +21,8 @@ a framework for building logic gates for trimagnetix systems.
 - [ ] create nmag script
 - [ ] run simulations
 - [ ] visualize results
+
+### bug fixes
+
+- [x] remove redundant nodes
+- [ ] smooth edges
