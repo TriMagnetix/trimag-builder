@@ -12,15 +12,13 @@ export const mesh = () => {
 	 */
 	const graph = []
 
-	graph.fromBitmap = (bitmap, scale=1) => {
+	graph.fromBitmap = (bitmap) => {
 		const canvas = document.createElement('canvas')
 
-		canvas.width = bitmap.width * scale
-		canvas.height = bitmap.height * scale
+		canvas.width = bitmap.width
+		canvas.height = bitmap.height
 
 		const ctx = canvas.getContext('2d')
-
-		ctx.scale(scale, scale)
 
 		// Initialize binary image to 0
 		const binaryImage =
