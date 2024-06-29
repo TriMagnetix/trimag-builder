@@ -6,7 +6,9 @@ export const mesh = () => {
 	 *		x: <num>,
 	 *		y: <num>,
 	 *		z: <num>,
+	 *		idx: <num>,
 	 *		neighbors: [<num>, ...],
+	 *		surroundingNodes: [<num, ...>],
 	 *		exterior: <bool>,
 	 *	}
 	 */
@@ -137,6 +139,48 @@ export const mesh = () => {
 			})
 
 		)
+
+		return graph
+	}
+
+	graph.smooth = () => {
+		const maxDist = 20
+		const corners = graph.filter(node => node.surroundingNodes.length < 5)
+
+		const distance = (n1, n2) => Math.sqrt(Math.pow(n1.x - n2.x, 2) + Math.pow(n1.y - n2.y, 2))
+
+		const quadrant = (n1, n2) => {
+			const direction = {
+				x: n2.x - n1.x,
+				y: n2.y - n1.y,
+			}
+
+			return
+				direction.x > 0 && direction.y > 0 ? 1
+				: direction.x > 0 && direction.y < 0 ? 2
+				: direction.x < 0 && direction.y < 0 ? 3
+				: 4
+		}
+
+		corners.forEach(n1 => {
+			const candidates = [...corners]
+				.filter(n2 => distance(n1, n2) != 0 && distance(n1, n2) <= maxDist)
+				.sort((n2, n3) => distance(n1, n2) - distance(n1, n3))
+				.filter((n2, i, array) => i == 0 || quadrant(n1, n2) != quadrant(n1, array[0]))
+				.filter((_, i) => i < 2)
+
+			const addNode = neighbors =>
+				graph.push({
+					x: neighbors[0].x + (neighbors[1].x - neighbors[0].x) / 2,
+					y: neighbors[0].y + (neighbors[1].y - neighbors[0].y) / 2,
+					z: 0,
+					idx: graph.length,
+					neighbors: neighbors.map(n => n.idx),
+					exterior: true,
+				})
+
+			candidates.forEach(n2 => addNode([n1, n2]))
+		})
 
 		return graph
 	}

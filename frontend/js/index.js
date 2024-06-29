@@ -42,6 +42,7 @@ const trianglesBitmap = await svg2bitmap(triangles)
 const trianglesMesh =
 	mesh()
 	.fromBitmap(trianglesBitmap)
+	.smooth()
 
 //const trianglesNmesh = mesh2nmesh(trianglesMesh)
 
