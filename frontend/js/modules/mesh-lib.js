@@ -144,8 +144,9 @@ export const mesh = () => {
 	}
 
 	graph.smooth = () => {
-		const maxDist = 20
+		const maxDist = 7
 		const corners = graph.filter(node => node.surroundingNodes.length < 5)
+		const sides = graph.filter(node => node.surroundingNodes.length == 5)
 
 		const distance = (n1, n2) => Math.sqrt(Math.pow(n1.x - n2.x, 2) + Math.pow(n1.y - n2.y, 2))
 
@@ -155,19 +156,27 @@ export const mesh = () => {
 				y: n2.y - n1.y,
 			}
 
-			return
-				direction.x > 0 && direction.y > 0 ? 1
+			return direction.x > 0 && direction.y > 0 ? 1
 				: direction.x > 0 && direction.y < 0 ? 2
 				: direction.x < 0 && direction.y < 0 ? 3
 				: 4
 		}
 
-		corners.forEach(n1 => {
-			const candidates = [...corners]
-				.filter(n2 => distance(n1, n2) != 0 && distance(n1, n2) <= maxDist)
+		corners.forEach((n1, i) => {
+			// Connect to the closest two corners within range
+
+			const expectedConnections = n1.surroundingNodes
+				.map(n2 => graph[n2])
+				.filter(n2 => n2.surroundingNodes.length == 5)
+				.filter(n2 => n1.x == n2.x || n1.y == n2.y)
+				.length == 0 ? 2 : 1
+
+			const candidates = corners
+				.filter((_, j) => j != i)
+				.filter(n2 => distance(n1, n2) <= maxDist)
 				.sort((n2, n3) => distance(n1, n2) - distance(n1, n3))
-				.filter((n2, i, array) => i == 0 || quadrant(n1, n2) != quadrant(n1, array[0]))
-				.filter((_, i) => i < 2)
+				.filter((n2, j, array) => j == 0 || quadrant(n1, n2) != quadrant(n1, array[0]))
+				.filter((_, j) => j < expectedConnections)
 
 			const addNode = neighbors =>
 				graph.push({
@@ -180,6 +189,20 @@ export const mesh = () => {
 				})
 
 			candidates.forEach(n2 => addNode([n1, n2]))
+
+			// If there are not enough corners within range, connect to the furthest side node in range
+
+			if (candidates.length >= expectedConnections) return
+
+			const closest = candidates.length == 1 ? distance(n1, candidates[0]) : maxDist
+
+			sides
+				.filter(n2 => distance(n1, n2) <= maxDist)
+				.sort((n2, n3) => distance(n1, n3) - distance(n1, n2))
+				.filter((n2, j) => candidates.length == 0 || quadrant(n1, n2) != quadrant(n1, candidates[0]))
+				.filter((n2, j, array) => j == 0 || quadrant(n1, n2) != quadrant(n1, array[0]))
+				.filter((_, j) => j < expectedConnections - candidates.length)
+				.forEach(n2 => addNode([n1, n2]))
 		})
 
 		return graph
