@@ -144,7 +144,7 @@ export const mesh = () => {
 	}
 
 	graph.smooth = () => {
-		const maxDist = 7
+		const maxDist = 5
 		const corners = graph.filter(node => node.surroundingNodes.length < 5)
 		const sides = graph.filter(node => node.surroundingNodes.length == 5)
 
@@ -165,18 +165,12 @@ export const mesh = () => {
 		corners.forEach((n1, i) => {
 			// Connect to the closest two corners within range
 
-			const expectedConnections = n1.surroundingNodes
-				.map(n2 => graph[n2])
-				.filter(n2 => n2.surroundingNodes.length == 5)
-				.filter(n2 => n1.x == n2.x || n1.y == n2.y)
-				.length == 0 ? 2 : 1
-
 			const candidates = corners
 				.filter((_, j) => j != i)
 				.filter(n2 => distance(n1, n2) <= maxDist)
 				.sort((n2, n3) => distance(n1, n2) - distance(n1, n3))
 				.filter((n2, j, array) => j == 0 || quadrant(n1, n2) != quadrant(n1, array[0]))
-				.filter((_, j) => j < expectedConnections)
+				.filter((_, j) => j < 2)
 
 			const addNode = neighbors =>
 				graph.push({
@@ -192,7 +186,7 @@ export const mesh = () => {
 
 			// If there are not enough corners within range, connect to the furthest side node in range
 
-			if (candidates.length >= expectedConnections) return
+			if (candidates.length >= 2) return
 
 			const closest = candidates.length == 1 ? distance(n1, candidates[0]) : maxDist
 
@@ -201,7 +195,7 @@ export const mesh = () => {
 				.sort((n2, n3) => distance(n1, n3) - distance(n1, n2))
 				.filter((n2, j) => candidates.length == 0 || quadrant(n1, n2) != quadrant(n1, candidates[0]))
 				.filter((n2, j, array) => j == 0 || quadrant(n1, n2) != quadrant(n1, array[0]))
-				.filter((_, j) => j < expectedConnections - candidates.length)
+				.filter((_, j) => j < 2 - candidates.length)
 				.forEach(n2 => addNode([n1, n2]))
 		})
 
