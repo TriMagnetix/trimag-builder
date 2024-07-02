@@ -172,9 +172,20 @@ export const mesh = () => {
 				.filter((_, j) => j < 2)
 
 			const addSurface = (n1, n2) => {
-				const newNode = n1.surroundingNodes
-					.map(n3 => graph[n3])
-					.sort((n3, n4) => distance(n2, n3) - distance(n2, n4))[0]
+				const getNextNode = n =>
+					n.surroundingNodes
+						.map(n3 => graph[n3])
+						.sort((n3, n4) => distance(n2, n3) - distance(n2, n4))[0]
+
+				let newNode = getNextNode(n1)
+
+				while (
+					newNode.surroundingNodes.length == 5
+					&& newNode.x != n2.x
+					&& newNode.y != n2.y
+				) {
+					newNode = getNextNode(newNode)
+				}
 
 				graph.push({
 					x: newNode.x,
