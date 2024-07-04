@@ -25,4 +25,4 @@ a framework for building logic gates for trimagnetix systems.
 ### bug fixes
 
 - [x] remove redundant nodes
-- [ ] smooth edges
+- [x] smooth edges
