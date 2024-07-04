@@ -217,6 +217,23 @@ export const mesh = () => {
 		return graph
 	}
 
+	graph.extrude = (thickness) => {
+		const bottom = [...graph]
+
+		for (let i = 1; i <= thickness; i++) {
+			bottom.forEach(n => graph.push({
+				...n,
+				z: i,
+				idx: graph.length,
+				neighbors: [
+					...n.neighbors.map(idx => idx + bottom.length * i),
+				],
+			}))
+		}
+
+		return graph
+	}
+
 	return graph
 }
 

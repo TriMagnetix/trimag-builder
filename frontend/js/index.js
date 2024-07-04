@@ -42,7 +42,8 @@ const trianglesBitmap = await svg2bitmap(triangles)
 const trianglesMesh =
 	mesh()
 	.fromBitmap(trianglesBitmap)
-	.smooth()
+	//.smooth()
+	.extrude(10)
 
 //const trianglesNmesh = mesh2nmesh(trianglesMesh)
 
