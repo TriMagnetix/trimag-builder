@@ -20,11 +20,16 @@ const triangles =
 	.shapes([
 		arrangement({
 			positionGrid: [
+				[1],
+			],
+			/*
+			positionGrid: [
 				[0, 1, 0, 1, 0, 1],
 				[0, 1, 0, 1, 0, 1],
 				[1, 0, 1, 0, 1, 0],
 				[1, 0, 1, 0, 1, 0],
 			],
+			*/
 			spacing: 10,
 			triangleSpecs: {
 				width: 200,
@@ -43,7 +48,7 @@ const trianglesMesh =
 	mesh()
 	.fromBitmap(trianglesBitmap)
 	//.smooth()
-	.extrude(10)
+	.extrude(2)
 
 //const trianglesNmesh = mesh2nmesh(trianglesMesh)
 

@@ -229,6 +229,35 @@ export const mesh = () => {
 					...n.neighbors.map(idx => idx + bottom.length * i),
 				],
 			}))
+
+			const newLayer = graph.filter(n => n.z == i)
+			const lowerLayer = graph.filter(n => n.z == i - 1)
+
+			newLayer.forEach(n => n.y += i)
+
+			lowerLayer.forEach(n => {
+				if (i % 2 == 0 && n.x % 2 == n.y % 2) return
+				if (i % 2 == 1 && n.x % 2 != n.y % 2) return
+				if (n.neighbors.length == 0) return
+
+				const match = newLayer.filter(n1 => n1.x == n.x && n1.y == n.y)[0]
+
+				if (!match) return
+
+				n.neighbors.push(match.idx)
+			})
+
+			newLayer.forEach(n => {
+				if (i % 2 == 0 && n.x % 2 != n.y % 2) return
+				if (i % 2 == 1 && n.x % 2 == n.y % 2) return
+				if (n.neighbors.length == 0) return
+
+				const match = lowerLayer.filter(n1 => n1.x == n.x && n1.y == n.y)[0]
+
+				if (!match) return
+
+				n.neighbors.push(match.idx)
+			})
 		}
 
 		return graph
@@ -241,14 +270,16 @@ const _getVolumes = mesh => {
 	const result = []
 
 	// Construct volume elements
-	mesh.forEach(({x, y, z, neighbors: n}, v) => {
+	mesh.forEach(({x, y, z, neighbors: n}, idx) => {
 		if (n.length < 3) return
 
 		for (let i = 0; i < n.length; i++) {
 			for (let j = i + 1; j < n.length; j++) {
 				for (let k = j + 1; k < n.length; k++) {
-					const volumeElement = [v, n[i], n[j], n[k]]
+					const volumeElement = [idx, n[i], n[j], n[k]]
 					const volumeElementNodes = volumeElement.map(pointIdx => mesh[pointIdx])
+
+					if (volumeElementNodes.some(node => !node)) continue
 
 					// Must be 3d to be a volume element
 					if (
@@ -270,13 +301,15 @@ const _getSurfaces = mesh => {
 	const result = []
 
 	// Construct surface elements
-	mesh.forEach(({x, y, z, neighbors: n}, v) => {
+	mesh.forEach(({x, y, z, idx, neighbors: n}) => {
 		if (n.length < 2) return
 
 		for (let i = 0; i < n.length; i++) {
 			for (let j = i + 1; j < n.length; j++) {
-				const surfaceElement = [v, n[i], n[j]]
+				const surfaceElement = [idx, n[i], n[j]]
 				const surfaceElementNodes = surfaceElement.map(pointIdx => mesh[pointIdx])
+
+				if (surfaceElementNodes.some(node => !node)) continue
 
 				// Must be on the exterior to be a surface element
 				if (
@@ -340,6 +373,8 @@ export const mesh2neutralmesh = mesh => {
 
 	// TODO: add support for different regions
 	const region = 1;
+
+	mesh = mesh.filter(n => n)
 
 	const neutralMesh = {
 		points: mesh.map(
