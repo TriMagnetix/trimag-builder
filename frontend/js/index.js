@@ -48,7 +48,7 @@ const trianglesMesh =
 	mesh()
 	.fromBitmap(trianglesBitmap)
 	//.smooth()
-	.extrude(2)
+	.extrude(1)
 
 //const trianglesNmesh = mesh2nmesh(trianglesMesh)
 

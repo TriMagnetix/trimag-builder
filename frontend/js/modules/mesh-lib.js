@@ -7,7 +7,7 @@ export const mesh = () => {
 	 *		y: <num>,
 	 *		z: <num>,
 	 *		idx: <num>,
-	 *		neighbors: [<num>, ...],
+	 *		neighbors: [<node>, ...],
 	 *		surroundingNodes: [<num, ...>],
 	 *		exterior: <bool>,
 	 *	}
@@ -94,7 +94,7 @@ export const mesh = () => {
 					idx != undefined
 					&& idx != false
 					&& idx != -1
-				)
+				).map(idx => graph[idx])
 			})
 		)
 
@@ -122,20 +122,20 @@ export const mesh = () => {
 
 				const remove = {
 					[left]:
-						(!graph[top] || graph[left]?.neighbors.includes(topLeft))
-						&& (!graph[bottom] || graph[left]?.neighbors.includes(bottomLeft)),
+						(!graph[top] || graph[left]?.neighbors.some(n => n.idx == topLeft))
+						&& (!graph[bottom] || graph[left]?.neighbors.some(n => n.idx == bottomLeft)),
 					[right]:
-						(!graph[top] || graph[right]?.neighbors.includes(topRight))
-						&& (!graph[bottom] || graph[right]?.neighbors.includes(bottomRight)),
+						(!graph[top] || graph[right]?.neighbors.some(n => n.idx == topRight))
+						&& (!graph[bottom] || graph[right]?.neighbors.some(n => n.idx == bottomRight)),
 					[top]:
-						(!graph[left] || graph[top]?.neighbors.includes(topLeft))
-						&& (!graph[right] || graph[top]?.neighbors.includes(topRight)),
+						(!graph[left] || graph[top]?.neighbors.some(n => n.idx == topLeft))
+						&& (!graph[right] || graph[top]?.neighbors.some(n => n.idx == topRight)),
 					[bottom]:
-						(!graph[left] || graph[bottom]?.neighbors.includes(bottomLeft))
-						&& (!graph[right] || graph[bottom]?.neighbors.includes(bottomRight)),
+						(!graph[left] || graph[bottom]?.neighbors.some(n => n.idx == bottomLeft))
+						&& (!graph[right] || graph[bottom]?.neighbors.some(n => n.idx == bottomRight)),
 				}
 
-				node.neighbors = node.neighbors.filter(n => !remove[n])
+				node.neighbors = node.neighbors.filter(n => !remove[n.idx])
 			})
 
 		)
@@ -192,7 +192,7 @@ export const mesh = () => {
 					y: newNode.y,
 					z: 0,
 					idx: graph.length,
-					neighbors: [n1, n2].map(n => n.idx),
+					neighbors: [n1, n2],
 					exterior: true,
 				})
 			}
@@ -218,20 +218,23 @@ export const mesh = () => {
 	}
 
 	graph.extrude = (thickness) => {
-		const bottom = [...graph]
-
 		for (let i = 1; i <= thickness; i++) {
-			bottom.forEach(n => graph.push({
+			const lowerLayer = graph.filter(n => n.z == i - 1)
+
+			lowerLayer.forEach(n => graph.push({
 				...n,
 				z: i,
 				idx: graph.length,
 				neighbors: [
-					...n.neighbors.map(idx => idx + bottom.length * i),
+					...n.neighbors.map(n1 => n1.idx),
 				],
 			}))
 
 			const newLayer = graph.filter(n => n.z == i)
-			const lowerLayer = graph.filter(n => n.z == i - 1)
+
+			newLayer.forEach(n => {
+				n.neighbors = n.neighbors.map(idx => graph[idx + lowerLayer.length])
+			})
 
 			newLayer.forEach(n => n.y += i)
 
@@ -244,7 +247,7 @@ export const mesh = () => {
 
 				if (!match) return
 
-				n.neighbors.push(match.idx)
+				n.neighbors.push(match)
 			})
 
 			newLayer.forEach(n => {
@@ -256,7 +259,7 @@ export const mesh = () => {
 
 				if (!match) return
 
-				n.neighbors.push(match.idx)
+				n.neighbors.push(match)
 			})
 		}
 
@@ -267,25 +270,26 @@ export const mesh = () => {
 }
 
 const _getVolumes = mesh => {
+	return [] // TODO: fix function and remove line
 	const result = []
 
 	// Construct volume elements
-	mesh.forEach(({x, y, z, neighbors: n}, idx) => {
-		if (n.length < 3) return
+	mesh.forEach(n => {
+		if (n.neighbors.length < 3) return
 
-		for (let i = 0; i < n.length; i++) {
-			for (let j = i + 1; j < n.length; j++) {
-				for (let k = j + 1; k < n.length; k++) {
-					const volumeElement = [idx, n[i], n[j], n[k]]
-					const volumeElementNodes = volumeElement.map(pointIdx => mesh[pointIdx])
+		for (let i = 0; i < n.neighbors.length; i++) {
+			for (let j = i + 1; j < n.neighbors.length; j++) {
+				for (let k = j + 1; k < n.neighbors.length; k++) {
+					const volumeElementNodes = [n, n.neighbors[i], n.neighbors[j], n.neighbors[k]]
+					const volumeElement = volumeElementNodes.map(n => n.idx)
 
 					if (volumeElementNodes.some(node => !node)) continue
 
 					// Must be 3d to be a volume element
 					if (
-						volumeElementNodes.every(node => node.x == x)
-						|| volumeElementNodes.every(node => node.y == y)
-						|| volumeElementNodes.every(node => node.z == z)
+						volumeElementNodes.every(node => node.x == n.x)
+						|| volumeElementNodes.every(node => node.y == n.y)
+						|| volumeElementNodes.every(node => node.z == n.z)
 					) continue
 
 					result.push(volumeElement)
@@ -301,13 +305,13 @@ const _getSurfaces = mesh => {
 	const result = []
 
 	// Construct surface elements
-	mesh.forEach(({x, y, z, idx, neighbors: n}) => {
-		if (n.length < 2) return
+	mesh.forEach(n => {
+		if (n.neighbors.length < 2) return
 
-		for (let i = 0; i < n.length; i++) {
-			for (let j = i + 1; j < n.length; j++) {
-				const surfaceElement = [idx, n[i], n[j]]
-				const surfaceElementNodes = surfaceElement.map(pointIdx => mesh[pointIdx])
+		for (let i = 0; i < n.neighbors.length; i++) {
+			for (let j = i + 1; j < n.neighbors.length; j++) {
+				const surfaceElementNodes = [n, n.neighbors[i], n.neighbors[j]]
+				const surfaceElement = surfaceElementNodes.map(n => n?.idx)
 
 				if (surfaceElementNodes.some(node => !node)) continue
 
@@ -319,9 +323,9 @@ const _getSurfaces = mesh => {
 				// Must be 2d to be a surface element
 				if (
 					[
-						surfaceElementNodes.every(node => node.x == x),
-						surfaceElementNodes.every(node => node.y == y),
-						surfaceElementNodes.every(node => node.z == z),
+						surfaceElementNodes.every(node => node.x == n.x),
+						surfaceElementNodes.every(node => node.y == n.y),
+						surfaceElementNodes.every(node => node.z == n.z),
 					]
 					.reduce((acc, isConstrainedDim) => acc + isConstrainedDim) != 1
 				) continue
