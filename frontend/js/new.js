@@ -1,11 +1,15 @@
 import Scene from './modules/scene.js'
 
-const distance = (p1, p2) => Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2))
+const distance = (p1, p2) => Math.sqrt(
+	Math.pow(p1.x - p2.x, 2)
+	+ Math.pow(p1.y - p2.y, 2)
+	+ Math.pow(p1.z - p2.z, 2)
+)
 
-const createTriangles = points => {
+const createTetrahedrons = points => {
 	const maxDist = 1
 	const groups = []
-	const triangles = []
+	const tetrahedrons = []
 
 	// Create groups
 	points.forEach(p1 => {
@@ -34,17 +38,28 @@ const createTriangles = points => {
 		const used = new Set()
 
 		g.perimeter.forEach(p1 => {
-			const p2 = g.perimeter
+			const candidates = g.perimeter
 				.sort((p2, p3) => distance(p1, p2) - distance(p1, p3))
 				.slice(1)
-				.find(p2 => !used.has(`(${p1.x},${p1.y})(${p2.x},${p2.y})`))
 
-			if (p2 == undefined) return
+			candidates.forEach(p2 => {
+				const p3 = candidates
+					.slice(1)
+					.find(p3 => !used.has(
+						`(${p1.x},${p1.y})(${p2.x},${p2.y})(${p3.x},${p3.y})`
+					))
 
-			used.add(`(${p1.x},${p1.y})(${p2.x},${p2.y})`)
-			used.add(`(${p2.x},${p2.y})(${p1.x},${p1.y})`)
+				if (p3 == undefined) return
 
-			triangles.push([g.center, p1, p2])
+				used.add(`(${p1.x},${p1.y})(${p2.x},${p2.y})(${p3.x},${p3.y})`)
+				used.add(`(${p1.x},${p1.y})(${p3.x},${p3.y})(${p2.x},${p2.y})`)
+				used.add(`(${p2.x},${p2.y})(${p1.x},${p1.y})(${p3.x},${p3.y})`)
+				used.add(`(${p2.x},${p2.y})(${p3.x},${p3.y})(${p1.x},${p1.y})`)
+				used.add(`(${p3.x},${p3.y})(${p1.x},${p1.y})(${p2.x},${p2.y})`)
+				used.add(`(${p3.x},${p3.y})(${p2.x},${p2.y})(${p1.x},${p1.y})`)
+
+				tetrahedrons.push([g.center, p1, p2, p3])
+			})
 		})
 	})
 
@@ -53,21 +68,22 @@ const createTriangles = points => {
 		delete p.used
 	})
 
-	return triangles
+	return tetrahedrons
 }
 
-const drawTriangles = (scene, triangles) => {
+const drawTetrahedrons = (scene, tetrahedrons) => {
 	let colors, positions
 
-	// Soid triangles
+	// Soid tetrahedrons
 
-	positions = triangles.flatMap(([p1, p2, p3]) => [
+	positions = tetrahedrons.flatMap(([p1, p2, p3, p4]) => [
 		p1.x / 10, p1.y / 10, p1.z,
 		p2.x / 10, p2.y / 10, p2.z,
 		p3.x / 10, p3.y / 10, p3.z,
+		p4.x / 10, p4.y / 10, p4.z,
 	])
 
-	colors = triangles.flatMap((t, i) => {
+	colors = tetrahedrons.flatMap((t, i) => {
 		const green = [0, 0.5, 0, 1]
 		const limeGreen = [0.195, 0.801, 0.195, 1]
 
@@ -78,12 +94,24 @@ const drawTriangles = (scene, triangles) => {
 
 	// Outlines
 
-	positions = triangles.flatMap(([p1, p2, p3]) => [
+	positions = tetrahedrons.flatMap(([p1, p2, p3, p4]) => [
 		p1.x / 10, p1.y / 10, p1.z,
 		p2.x / 10, p2.y / 10, p2.z,
 		p2.x / 10, p2.y / 10, p2.z,
 		p3.x / 10, p3.y / 10, p3.z,
 		p3.x / 10, p3.y / 10, p3.z,
+		p1.x / 10, p1.y / 10, p1.z,
+		p1.x / 10, p1.y / 10, p1.z,
+		p2.x / 10, p2.y / 10, p2.z,
+		p2.x / 10, p2.y / 10, p2.z,
+		p4.x / 10, p4.y / 10, p4.z,
+		p4.x / 10, p4.y / 10, p4.z,
+		p1.x / 10, p1.y / 10, p1.z,
+		p1.x / 10, p1.y / 10, p1.z,
+		p3.x / 10, p3.y / 10, p3.z,
+		p3.x / 10, p3.y / 10, p3.z,
+		p4.x / 10, p4.y / 10, p4.z,
+		p4.x / 10, p4.y / 10, p4.z,
 		p1.x / 10, p1.y / 10, p1.z,
 	])
 
@@ -103,9 +131,13 @@ const points = Array(10)
 	.flatMap((_, i) =>
 		Array(10)
 		.fill(0)
-		.map((_, j) => ({x: j - 5, y: i - 5, z: 0}))
+		.flatMap((_, j) => 
+			Array(10)
+			.fill(0)
+			.map((_, k) => ({x: j - 5, y: i - 5, z: k - 5}))
+		)
 )
 
-const triangles = createTriangles(points)
+const tetrahedrons = createTetrahedrons(points)
 
-drawTriangles(scene, triangles)
+drawTetrahedrons(scene, tetrahedrons)
