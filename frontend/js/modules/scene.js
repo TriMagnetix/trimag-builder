@@ -44,7 +44,7 @@ export default class Scene {
 		return this
 	}
 
-	scale (x, y, z) {
+	scale (x, y = x, z = x) {
 		this.matrices.model = matLib.matrixMult(
 			this.matrices.model,
 			matLib.scale(x, y, z)

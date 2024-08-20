@@ -29,10 +29,10 @@ export const matrixMult = (a, b) => {
 }
 
 export const translate = (x, y, z) => [
-	[1, 0, 0, x],
-	[0, 1, 0, y],
-	[0, 0, 1, z],
-	[0, 0, 0, 1],
+	[1, 0, 0, 0],
+	[0, 1, 0, 0],
+	[0, 0, 1, 0],
+	[x, y, z, 1],
 ]
 
 export const scale = (x, y, z) => [
