@@ -77,17 +77,26 @@ const drawTetrahedrons = (scene, tetrahedrons) => {
 	// Soid tetrahedrons
 
 	positions = tetrahedrons.flatMap(([p1, p2, p3, p4]) => [
-		p1.x / 10, p1.y / 10, p1.z,
-		p2.x / 10, p2.y / 10, p2.z,
-		p3.x / 10, p3.y / 10, p3.z,
-		p4.x / 10, p4.y / 10, p4.z,
+		p1.x, p1.y, p1.z,
+		p2.x, p2.y, p2.z,
+		p3.x, p3.y, p3.z,
+		p1.x, p1.y, p1.z,
+		p2.x, p2.y, p2.z,
+		p4.x, p4.y, p4.z,
+		p1.x, p1.y, p1.z,
+		p3.x, p3.y, p3.z,
+		p4.x, p4.y, p4.z,
+		p2.x, p2.y, p2.z,
+		p3.x, p3.y, p3.z,
+		p4.x, p4.y, p4.z,
 	])
 
 	colors = tetrahedrons.flatMap((t, i) => {
 		const green = [0, 0.5, 0, 1]
 		const limeGreen = [0.195, 0.801, 0.195, 1]
 
-		return t.flatMap(p => i % 2 == 0 ? green : limeGreen)
+		return t.flatMap(p => Array(4).fill(0)
+			.flatMap(_ => i % 2 == 0 ? green : limeGreen))
 	})
 
 	scene.drawTriangles(positions, colors)
@@ -95,24 +104,24 @@ const drawTetrahedrons = (scene, tetrahedrons) => {
 	// Outlines
 
 	positions = tetrahedrons.flatMap(([p1, p2, p3, p4]) => [
-		p1.x / 10, p1.y / 10, p1.z,
-		p2.x / 10, p2.y / 10, p2.z,
-		p2.x / 10, p2.y / 10, p2.z,
-		p3.x / 10, p3.y / 10, p3.z,
-		p3.x / 10, p3.y / 10, p3.z,
-		p1.x / 10, p1.y / 10, p1.z,
-		p1.x / 10, p1.y / 10, p1.z,
-		p2.x / 10, p2.y / 10, p2.z,
-		p2.x / 10, p2.y / 10, p2.z,
-		p4.x / 10, p4.y / 10, p4.z,
-		p4.x / 10, p4.y / 10, p4.z,
-		p1.x / 10, p1.y / 10, p1.z,
-		p1.x / 10, p1.y / 10, p1.z,
-		p3.x / 10, p3.y / 10, p3.z,
-		p3.x / 10, p3.y / 10, p3.z,
-		p4.x / 10, p4.y / 10, p4.z,
-		p4.x / 10, p4.y / 10, p4.z,
-		p1.x / 10, p1.y / 10, p1.z,
+		p1.x, p1.y, p1.z,
+		p2.x, p2.y, p2.z,
+		p2.x, p2.y, p2.z,
+		p3.x, p3.y, p3.z,
+		p3.x, p3.y, p3.z,
+		p1.x, p1.y, p1.z,
+		p1.x, p1.y, p1.z,
+		p2.x, p2.y, p2.z,
+		p2.x, p2.y, p2.z,
+		p4.x, p4.y, p4.z,
+		p4.x, p4.y, p4.z,
+		p1.x, p1.y, p1.z,
+		p1.x, p1.y, p1.z,
+		p3.x, p3.y, p3.z,
+		p3.x, p3.y, p3.z,
+		p4.x, p4.y, p4.z,
+		p4.x, p4.y, p4.z,
+		p1.x, p1.y, p1.z,
 	])
 
 	colors = Array(positions.length / 3)
@@ -123,8 +132,10 @@ const drawTetrahedrons = (scene, tetrahedrons) => {
 }
 
 const scene = new Scene()
-	.rotate(-0.5, -0.5, 0)
-	.project(0.9)
+	//.rotate(-0.5, -0.5, 0)
+	//.project(0.9)
+	//.scale(0.1)
+	.translate(-0.5, -0.5, 0)
 
 const points = Array(10)
 	.fill(0)
@@ -138,6 +149,14 @@ const points = Array(10)
 		)
 )
 
-const tetrahedrons = createTetrahedrons(points)
+//const tetrahedrons = createTetrahedrons(points)
+const tetrahedrons = [
+	[
+		{x: 0, y: 0, z: 0},
+		{x: 1, y: 0, z: 0},
+		{x: 0, y: 1, z: 0},
+		{x: 0, y: 0, z: 1},
+	]
+]
 
 drawTetrahedrons(scene, tetrahedrons)
