@@ -133,10 +133,6 @@ const drawTetrahedrons = (scene, tetrahedrons) => {
 }
 
 const scene = new Scene()
-	//.rotate(-0.5, -0.5, 0)
-	//.project(0.9)
-	//.scale(0.1)
-	//.translate(-0.5, -0.5, 0)
 
 const points = Array(10)
 	.fill(0)
@@ -187,5 +183,12 @@ $('main').onmousemove = e => {
 		0,
 	)
 
+	drawTetrahedrons(scene, tetrahedrons)
+}
+
+// Mouse-wheel to scale
+$('main').onwheel = e => {
+	scene.clear()
+	scene.scale(e.deltaY > 0 ? 1.15 : 0.85)
 	drawTetrahedrons(scene, tetrahedrons)
 }
