@@ -61,7 +61,7 @@ export const rotate = (x, y, z) => {
 	const yCos = Math.cos(y)
 
 	const yMat = [
-		[yCos, 0, 0, ySin],
+		[yCos, 0, ySin, 0],
 		[0, 1, 0, 0],
 		[-ySin, 0, yCos, 0],
 		[0, 0, 0, 1],

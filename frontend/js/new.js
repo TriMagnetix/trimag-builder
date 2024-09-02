@@ -175,8 +175,8 @@ $('main').onmousemove = e => {
 
 	// Click and drag to rotate
 	!e.shiftKey && scene.rotate(
-		Math.PI * e.movementY / $('main').clientHeight,
-		Math.PI * e.movementX / $('main').clientWidth,
+		Math.PI * e.movementY / 100,
+		Math.PI * e.movementX / 100,
 		0,
 	)
 
