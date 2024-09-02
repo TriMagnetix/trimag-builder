@@ -1,3 +1,4 @@
+import { $ } from './modules/common.js'
 import Scene from './modules/scene.js'
 
 const distance = (p1, p2) => Math.sqrt(
@@ -135,7 +136,7 @@ const scene = new Scene()
 	//.rotate(-0.5, -0.5, 0)
 	//.project(0.9)
 	//.scale(0.1)
-	.translate(-0.5, -0.5, 0)
+	//.translate(-0.5, -0.5, 0)
 
 const points = Array(10)
 	.fill(0)
@@ -160,3 +161,31 @@ const tetrahedrons = [
 ]
 
 drawTetrahedrons(scene, tetrahedrons)
+
+// Tranformation controls
+
+$('main').onmousedown = () => $('main').isClicked = true
+$('main').onmouseup = () => $('main').isClicked = false
+$('main').onmouseout = () => $('main').isClicked = false
+
+$('main').onmousemove = e => {
+	if (!$('main').isClicked) return
+
+	scene.clear()
+
+	// Click and drag to rotate
+	!e.shiftKey && scene.rotate(
+		Math.PI * e.movementY / $('main').clientHeight,
+		Math.PI * e.movementX / $('main').clientWidth,
+		0,
+	)
+
+	// Shift-Click and drag to translate
+	e.shiftKey && scene.translate(
+		2 * e.movementX / $('main').clientWidth,
+		-2 * e.movementY / $('main').clientHeight,
+		0,
+	)
+
+	drawTetrahedrons(scene, tetrahedrons)
+}

@@ -107,6 +107,12 @@ export default class Scene {
 		return this
 	}
 
+	clear () {
+		const gl = this.gl
+
+		gl.clear(gl.COLOR_BUFFER_BIT)
+	}
+
 	_initGl () {
 		// Setup
 
