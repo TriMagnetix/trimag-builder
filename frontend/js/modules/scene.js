@@ -138,6 +138,10 @@ export default class Scene {
 			throw 'WebGL is unsupported by this browser.'
 		}
 
+		// Setup WebGL
+
+		gl.enable(gl.DEPTH_TEST)
+
 		// Vertex shader
 
 		const vertexShader = gl.createShader(gl.VERTEX_SHADER)
