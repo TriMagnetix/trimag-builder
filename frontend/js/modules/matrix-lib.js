@@ -35,7 +35,7 @@ export const translate = (x, y, z) => [
 	[x, y, z, 1],
 ]
 
-export const scale = (x, y, z) => [
+export const scale = (x, y = x, z = x) => [
 	[x, 0, 0, 0],
 	[0, y, 0, 0],
 	[0, 0, z, 0],
@@ -82,9 +82,9 @@ export const rotate = (x, y, z) => {
 	return matrixMult(matrixMult(xMat, yMat), zMat)
 }
 
-export const project = scale => [
-	[1, 0, 0, 0],
-	[0, 1, 0, 0],
-	[0, 0, 1, scale],
-	[0, 0, 0, scale],
+export const project = (scale, aspect) => [
+	[aspect > 1 ? 1 / aspect : 1, 0, 0, 0],
+	[0, aspect < 1 ? aspect : 1, 0, 0],
+	[0, 0, 1, 0],
+	[0, 0, scale - 1, scale],
 ]

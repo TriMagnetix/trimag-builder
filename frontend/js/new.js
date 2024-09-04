@@ -133,6 +133,7 @@ const drawTetrahedrons = (scene, tetrahedrons) => {
 }
 
 const scene = new Scene()
+	.project(1, $('canvas').width / $('canvas').height)
 
 const points = Array(10)
 	.fill(0)
@@ -178,8 +179,8 @@ $('main').onmousemove = e => {
 
 	// Shift-Click and drag to translate
 	e.shiftKey && scene.translate(
-		2 * e.movementX / $('main').clientWidth,
-		-2 * e.movementY / $('main').clientHeight,
+		4.5 * e.movementX / $('main').clientWidth,
+		-4.5 * e.movementY / $('main').clientHeight,
 		0,
 	)
 

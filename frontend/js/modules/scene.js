@@ -9,13 +9,13 @@ export default class Scene {
 			height: height || "100%",
 		}
 
+		this.gl = this._initGl()
+
 		this.matrices = {
 			model: matLib.identity,
-			projection: matLib.identity,
 			view: matLib.identity,
+			projection: matLib.identity,
 		}
-
-		this.gl = this._initGl()
 
 		return this
 	}
@@ -38,8 +38,11 @@ export default class Scene {
 		return this
 	}
 
-	project (scale) {
-		this.matrices.projection = matLib.project(scale)
+	project (scale, aspect = 1) {
+		this.matrices.projection = matLib.matrixMult(
+			this.matrices.projection,
+			matLib.project(scale, aspect),
+		)
 
 		return this
 	}
@@ -128,10 +131,6 @@ export default class Scene {
 			? canvas.parentElement.clientHeight
 			: width
 
-		canvas.width > canvas.height
-			? this.scale(canvas.height / canvas.width, 1, 1)
-			: this.scale(1, canvas.width / canvas.height, 1)
-
 		const gl = canvas.getContext('webgl')
 
 		if(gl == null) {
@@ -157,7 +156,7 @@ export default class Scene {
 			varying lowp vec4 vColor;
 
 			void main(void) {
-				gl_Position = uProjectionMat * uModelMat * uViewMat * aVertPos;
+				gl_Position = uModelMat * uViewMat * aVertPos * uProjectionMat;
 				vColor = aVertColor;
 			}
 		`
