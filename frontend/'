@@ -95,13 +95,9 @@ const drawTetrahedrons = (scene, tetrahedrons) => {
 	colors = tetrahedrons.flatMap((t, i) => {
 		const green = [0, 0.5, 0, 1]
 		const limeGreen = [0.195, 0.801, 0.195, 1]
-		const darkGreen = [0, 0.2, 0, 1]
-		const lightGreen = [0, 1, 0, 1]
 
 		return t.flatMap(p => Array(3).fill(0)
-			.flatMap((_, j) => i % 2 == 0
-				? j % 2 && darkGreen || green
-				: j % 2 && limeGreen || lightGreen))
+			.flatMap((_, j) => i % 2 == 0 ? green : limeGreen))
 	})
 
 	scene.drawTriangles(positions, colors)
@@ -155,6 +151,12 @@ const points = Array(10)
 const tetrahedrons = [
 	[
 		{x: 0, y: 0, z: 0},
+		{x: -1, y: 0, z: 0},
+		{x: 0, y: -1, z: 0},
+		{x: 0, y: 0, z: 1},
+	],
+	[
+		{x: 0, y: 0, z: 0},
 		{x: 1, y: 0, z: 0},
 		{x: 0, y: 1, z: 0},
 		{x: 0, y: 0, z: 1},
@@ -163,12 +165,6 @@ const tetrahedrons = [
 		{x: 0, y: 0, z: 0},
 		{x: -1, y: 0, z: 0},
 		{x: 0, y: 1, z: 0},
-		{x: 0, y: 0, z: 1},
-	],
-	[
-		{x: 0, y: 0, z: 0},
-		{x: -1, y: 0, z: 0},
-		{x: 0, y: -1, z: 0},
 		{x: 0, y: 0, z: 1},
 	],
 	[
