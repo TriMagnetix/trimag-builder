@@ -21,7 +21,7 @@ const createTetrahedrons = points => {
 		p1.used = true
 
 		points.forEach(p2 => {
-			if (p1.x == p2.x && p1.y == p2.y) return
+			if (p1.x == p2.x && p1.y == p2.y && p1.z == p2.z) return
 			if (distance(p1, p2) > maxDist) return
 
 			group.perimeter.push(p2)
@@ -44,20 +44,25 @@ const createTetrahedrons = points => {
 				.slice(1)
 
 			candidates.forEach(p2 => {
+				const p2s = p => `(${p.x},${p.y},${p.z})`
+				const ps2s = (p1, p2, p3) => 
+					p2s(p1) + p2s(p2) + p2s(p3)
+
 				const p3 = candidates
 					.slice(1)
-					.find(p3 => !used.has(
-						`(${p1.x},${p1.y})(${p2.x},${p2.y})(${p3.x},${p3.y})`
-					))
+					.find(p3 => !used.has(ps2s(p1, p2, p3)))
 
 				if (p3 == undefined) return
+				if (p1.x == p2.x && p2.x == p3.x) return
+				if (p1.y == p2.y && p2.y == p3.y) return
+				if (p1.z == p2.z && p2.z == p3.z) return
 
-				used.add(`(${p1.x},${p1.y})(${p2.x},${p2.y})(${p3.x},${p3.y})`)
-				used.add(`(${p1.x},${p1.y})(${p3.x},${p3.y})(${p2.x},${p2.y})`)
-				used.add(`(${p2.x},${p2.y})(${p1.x},${p1.y})(${p3.x},${p3.y})`)
-				used.add(`(${p2.x},${p2.y})(${p3.x},${p3.y})(${p1.x},${p1.y})`)
-				used.add(`(${p3.x},${p3.y})(${p1.x},${p1.y})(${p2.x},${p2.y})`)
-				used.add(`(${p3.x},${p3.y})(${p2.x},${p2.y})(${p1.x},${p1.y})`)
+				used.add(ps2s(p1, p2, p3))
+				used.add(ps2s(p1, p3, p2))
+				used.add(ps2s(p2, p1, p3))
+				used.add(ps2s(p2, p3, p1))
+				used.add(ps2s(p3, p1, p2))
+				used.add(ps2s(p3, p2, p1))
 
 				tetrahedrons.push([g.center, p1, p2, p3])
 			})
@@ -147,37 +152,11 @@ const points = Array(10)
 		.flatMap((_, j) => 
 			Array(10)
 			.fill(0)
-			.map((_, k) => ({x: j - 5, y: i - 5, z: k - 5}))
+			.map((_, k) => ({x: j, y: i, z: k}))
 		)
 )
 
-//const tetrahedrons = createTetrahedrons(points)
-const tetrahedrons = [
-	[
-		{x: 0, y: 0, z: 0},
-		{x: 1, y: 0, z: 0},
-		{x: 0, y: 1, z: 0},
-		{x: 0, y: 0, z: 1},
-	],
-	[
-		{x: 0, y: 0, z: 0},
-		{x: -1, y: 0, z: 0},
-		{x: 0, y: 1, z: 0},
-		{x: 0, y: 0, z: 1},
-	],
-	[
-		{x: 0, y: 0, z: 0},
-		{x: -1, y: 0, z: 0},
-		{x: 0, y: -1, z: 0},
-		{x: 0, y: 0, z: 1},
-	],
-	[
-		{x: 0, y: 0, z: 0},
-		{x: 1, y: 0, z: 0},
-		{x: 0, y: -1, z: 0},
-		{x: 0, y: 0, z: 1},
-	],
-]
+const tetrahedrons = createTetrahedrons(points)
 
 drawTetrahedrons(scene, tetrahedrons)
 
