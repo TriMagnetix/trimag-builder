@@ -85,6 +85,6 @@ export const rotate = (x, y, z) => {
 export const project = (scale, aspect) => [
 	[aspect > 1 ? 1 / aspect : 1, 0, 0, 0],
 	[0, aspect < 1 ? aspect : 1, 0, 0],
-	[0, 0, 1, 0],
+	[0, 0, 1, scale - 0.1],
 	[0, 0, scale - 1, scale],
 ]

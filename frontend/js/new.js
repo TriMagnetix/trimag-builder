@@ -141,6 +141,27 @@ const drawTetrahedrons = (scene, tetrahedrons) => {
 	scene.drawLines(positions, colors)
 }
 
+const centerScene = (scene, tetrahedrons) => {
+	const Xs = new Set(tetrahedrons.flatMap(t => t.map(p => p.x)))
+	const Ys = new Set(tetrahedrons.flatMap(t => t.map(p => p.y)))
+	const Zs = new Set(tetrahedrons.flatMap(t => t.map(p => p.z)))
+	const width = Math.max(...Xs) - Math.min(...Xs)
+	const height = Math.max(...Ys) - Math.min(...Ys)
+	const depth = Math.max(...Zs) - Math.min(...Zs)
+
+	scene
+		.reset()
+		.translate(
+			-width / 2 - Math.min(...Xs),
+			-height / 2 - Math.min(...Ys),
+			-depth / 2 - Math.min(...Zs),
+		)
+		.scale(1.5 / Math.max(width, height))
+		.clear()
+
+	drawTetrahedrons(scene, tetrahedrons)
+}
+
 const scene = new Scene()
 	.project(2, $('canvas').width / $('canvas').height)
 
@@ -157,6 +178,8 @@ const points = Array(10)
 )
 
 const tetrahedrons = createTetrahedrons(points)
+
+centerScene(scene, tetrahedrons)
 
 drawTetrahedrons(scene, tetrahedrons)
 
