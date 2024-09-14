@@ -110,6 +110,12 @@ export default class Scene {
 		return this
 	}
 
+	reset () {
+		this.matrices.mode = matLib.identity
+
+		return this
+	}
+
 	clear () {
 		const gl = this.gl
 
