@@ -39,10 +39,7 @@ export default class Scene {
 	}
 
 	project (scale, aspect = 1) {
-		this.matrices.projection = matLib.matrixMult(
-			this.matrices.projection,
-			matLib.project(scale, aspect),
-		)
+		this.matrices.projection = matLib.project(scale, aspect)
 
 		return this
 	}
@@ -120,6 +117,16 @@ export default class Scene {
 		const gl = this.gl
 
 		gl.clear(gl.COLOR_BUFFER_BIT)
+	}
+
+	resizeCanvas (width, height) {
+		const gl = this.gl
+
+		gl.canvas.width = width
+		gl.canvas.height = height
+		gl.viewport(0, 0, width, height)
+
+		return this
 	}
 
 	_initGl () {
