@@ -217,3 +217,16 @@ $('main').onwheel = e => {
 	scene.scale(e.deltaY > 0 ? 1.15 : 0.85)
 	drawTetrahedrons(scene, tetrahedrons)
 }
+
+// Resize canvas when it's containers size changes
+setInterval(() => {
+	if (
+		$('canvas').width == $('main').clientWidth
+		&& $('canvas').height == $('main').clientHeight
+	) return
+
+	scene
+		.resizeCanvas($('main').clientWidth, $('main').clientHeight)
+		.project(2, $('canvas').width / $('canvas').height)
+	drawTetrahedrons(scene, tetrahedrons)
+}, 100)
