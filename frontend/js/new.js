@@ -13,7 +13,9 @@ const createTetrahedrons = points => {
 	const tetrahedrons = []
 
 	// Create groups
+	console.log('grouping...')
 	points.forEach(p1 => {
+		if (groups.length % 100 == 0) console.log(groups.length)
 		if (p1.used) return
 
 		const group = {center: p1, perimeter: []}
@@ -33,7 +35,9 @@ const createTetrahedrons = points => {
 	})
 
 	// Connect nodes
+	console.log('building tetrahedrons...')
 	groups.forEach(g => {
+		if (tetrahedrons.length % 100 == 0) console.log(tetrahedrons.length)
 		if (g.perimeter.length < 2) return
 
 		const used = new Set()
@@ -77,60 +81,56 @@ const createTetrahedrons = points => {
 	return tetrahedrons
 }
 
-const drawTetrahedrons = (scene, tetrahedrons) => {
+const drawModel = (scene, tetrahedrons) => {
 	let colors, positions
 
-	// Soid tetrahedrons
+	// Only render triangles that are on the surface
 
-	positions = tetrahedrons.flatMap(([p1, p2, p3, p4]) => [
-		p1.x, p1.y, p1.z,
-		p2.x, p2.y, p2.z,
-		p3.x, p3.y, p3.z,
-		p1.x, p1.y, p1.z,
-		p2.x, p2.y, p2.z,
-		p4.x, p4.y, p4.z,
-		p1.x, p1.y, p1.z,
-		p3.x, p3.y, p3.z,
-		p4.x, p4.y, p4.z,
-		p2.x, p2.y, p2.z,
-		p3.x, p3.y, p3.z,
-		p4.x, p4.y, p4.z,
-	])
+	const triangles = tetrahedrons
+		.flatMap(([p1, p2, p3, p4]) => [
+			[p1, p2, p3],
+			[p1, p2, p4],
+			[p1, p3, p4],
+			[p2, p3, p4],
+		])
+		.filter(t =>
+			t.every(p => p.exterior)
+			&& (
+				t.every(p => p.x == t[0].x)
+				|| t.every(p => p.y == t[0].y)
+				|| t.every(p => p.z == t[0].z)
+			)
+		)
 
-	colors = tetrahedrons.flatMap((t, i) => {
-		const green = [0, 0.5, 0, 1]
-		const limeGreen = [0.195, 0.801, 0.195, 1]
-		const darkGreen = [0, 0.2, 0, 1]
-		const lightGreen = [0, 1, 0, 1]
+	// Render solid trianlges
 
-		return t.flatMap(p => Array(3).fill(0)
-			.flatMap((_, j) => i % 2 == 0
-				? j % 2 && darkGreen || green
-				: j % 2 && limeGreen || lightGreen))
-	})
+	positions = triangles
+		.flatMap(([p1, p2, p3]) => [
+			p1.x, p1.y, p1.z,
+			p2.x, p2.y, p2.z,
+			p3.x, p3.y, p3.z,
+		])
+
+	colors = Array(positions.length / 3).fill(0)
+		.flatMap((_, i) => {
+			const green = [0, 0.5, 0, 1]
+			const limeGreen = [0.195, 0.801, 0.195, 1]
+			const darkGreen = [0, 0.2, 0, 1]
+			const lightGreen = [0, 1, 0, 1]
+
+			return i % 3 == i % 6 ? green : lightGreen
+		})
 
 	scene.drawTriangles(positions, colors)
 
-	// Outlines
+	// Render Outlines
 
-	positions = tetrahedrons.flatMap(([p1, p2, p3, p4]) => [
+	positions = triangles.flatMap(([p1, p2, p3]) => [
 		p1.x, p1.y, p1.z,
 		p2.x, p2.y, p2.z,
 		p2.x, p2.y, p2.z,
 		p3.x, p3.y, p3.z,
 		p3.x, p3.y, p3.z,
-		p1.x, p1.y, p1.z,
-		p1.x, p1.y, p1.z,
-		p2.x, p2.y, p2.z,
-		p2.x, p2.y, p2.z,
-		p4.x, p4.y, p4.z,
-		p4.x, p4.y, p4.z,
-		p1.x, p1.y, p1.z,
-		p1.x, p1.y, p1.z,
-		p3.x, p3.y, p3.z,
-		p3.x, p3.y, p3.z,
-		p4.x, p4.y, p4.z,
-		p4.x, p4.y, p4.z,
 		p1.x, p1.y, p1.z,
 	])
 
@@ -159,29 +159,38 @@ const centerScene = (scene, tetrahedrons) => {
 		.scale(1.5 / Math.max(width, height))
 		.clear()
 
-	drawTetrahedrons(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons)
 }
 
 const scene = new Scene()
 	.project(2, $('canvas').width / $('canvas').height)
 
-const points = Array(10)
+const points = Array(100)
 	.fill(0)
 	.flatMap((_, i) =>
-		Array(10)
+		Array(100)
 		.fill(0)
 		.flatMap((_, j) => 
-			Array(10)
+			Array(5)
 			.fill(0)
-			.map((_, k) => ({x: j, y: i, z: k}))
+			.map((_, k) => ({
+				x: j,
+				y: i,
+				z: k,
+				exterior: [i, j, k].some(n => n == 0)
+					|| i == 99
+					|| j == 99
+					|| k == 4
+			}))
 		)
 )
+
 
 const tetrahedrons = createTetrahedrons(points)
 
 centerScene(scene, tetrahedrons)
 
-drawTetrahedrons(scene, tetrahedrons)
+drawModel(scene, tetrahedrons)
 
 // Tranformation controls
 
@@ -208,14 +217,14 @@ $('main').onmousemove = e => {
 		0,
 	)
 
-	drawTetrahedrons(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons)
 }
 
 // Mouse-wheel to scale
 $('main').onwheel = e => {
 	scene.clear()
 	scene.scale(e.deltaY > 0 ? 1.15 : 0.85)
-	drawTetrahedrons(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons)
 }
 
 // Resize canvas when it's containers size changes
@@ -228,5 +237,5 @@ setInterval(() => {
 	scene
 		.resizeCanvas($('main').clientWidth, $('main').clientHeight)
 		.project(2, $('canvas').width / $('canvas').height)
-	drawTetrahedrons(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons)
 }, 100)
