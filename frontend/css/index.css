@@ -10,3 +10,8 @@ main {
 	max-height: 100vh;
 	overflow: hidden;
 }
+
+#svg-target {
+	opacity: 0;
+	position: absolute;
+}
