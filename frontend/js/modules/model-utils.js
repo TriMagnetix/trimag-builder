@@ -1,6 +1,18 @@
+// TODO: fix this so that exterior is not always true
 export const extrudePoints = (points, layers) => Array(layers).fill(0)
-	.map((_, z) => points.map(p => ({...p, z})))
-	.flat()
+	.map((_, z) => points
+		.map((row, y) => row
+			.map((p, x) => ({
+				...p,
+				z,
+				exterior:
+					!points[0][x - 1]?.[y]
+					|| !points[0][x + 1]?.[y]
+					|| !points[0][x]?.[y - 1]
+					|| !points[0][x]?.[y + 1],
+			}))
+		)
+	)
 
 export const createTetrahedrons = points => {
 	const maxDist = 1
@@ -13,33 +25,35 @@ export const createTetrahedrons = points => {
 		+ Math.pow(p1.z - p2.z, 2)
 	)
 
-	// TODO: Optimize by improving points datastructure so they can be referenced by index
 	// Create groups
-	console.log('grouping...')
-	points.forEach(p1 => {
-		if (groups.length % 100 == 0) console.log(groups.length)
-		if (p1.used) return
+	for (let i = 0; i < points.length; i++) {
+		for (let j = 0; j < points[i].length; j++) {
+			for (let k = 0; k < points[i][j].length; k++) {
+				if (points[i][j][k] == undefined) continue
+				if (points[i][j][k].used) continue
 
-		const group = {center: p1, perimeter: []}
+				const group = {
+					center: points[i][j][k],
+					perimeter: [
+						points[i - 1]?.[j]?.[k],
+						points[i + 1]?.[j]?.[k],
+						points[i]?.[j - 1]?.[k],
+						points[i]?.[j + 1]?.[k],
+						points[i]?.[j]?.[k - 1],
+						points[i]?.[j]?.[k + 1],
+					].filter(p => p)
+				}
 
-		p1.used = true
+				group.center.used = true
+				group.perimeter.forEach(p => p.used = true)
 
-		points.forEach(p2 => {
-			if (p1.x == p2.x && p1.y == p2.y && p1.z == p2.z) return
-			if (distance(p1, p2) > maxDist) return
-
-			group.perimeter.push(p2)
-
-			p2.used = true
-		})
-
-		groups.push(group)
-	})
+				groups.push(group)
+			}
+		}
+	}
 
 	// Connect nodes
-	console.log('building tetrahedrons...')
 	groups.forEach(g => {
-		if (tetrahedrons.length % 100 == 0) console.log(tetrahedrons.length)
 		if (g.perimeter.length < 2) return
 
 		const used = new Set()
@@ -95,14 +109,6 @@ export const drawModel = (scene, tetrahedrons) => {
 			[p1, p3, p4],
 			[p2, p3, p4],
 		])
-		.filter(t =>
-			t.every(p => p.exterior)
-			&& (
-				t.every(p => p.x == t[0].x)
-				|| t.every(p => p.y == t[0].y)
-				|| t.every(p => p.z == t[0].z)
-			)
-		)
 
 	// Render solid trianlges
 
