@@ -41,9 +41,8 @@ const triangles =
 
 let points = await svg2points(triangles)
 
+points = extrudePoints(points, 5)
 console.log(points)
-
-points = extrudePoints(points, 2)
 
 const tetrahedrons = createTetrahedrons(points)
 
