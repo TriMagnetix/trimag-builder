@@ -17,7 +17,9 @@ const triangles =
 	.shapes([
 		arrangement({
 			positionGrid: [
-				[1],
+				[0, 0, 0],
+				[0, 1, 0],
+				[1, 0, 1],
 			],
 			/*
 			positionGrid: [
@@ -29,10 +31,10 @@ const triangles =
 			*/
 			spacing: 10,
 			triangleSpecs: {
-				width: 200,
-				vertexRad: 10,
-				sideRad: 50,
-				extrusion: 70,
+				width: 100,
+				vertexRad: 5,
+				sideRad: 25,
+				extrusion: 35,
 			},
 		}),
 	])
@@ -41,7 +43,7 @@ const triangles =
 
 let points = await svg2points(triangles)
 
-points = extrudePoints(points, 5)
+points = extrudePoints(points, 2)
 console.log(points)
 
 const tetrahedrons = createTetrahedrons(points)
@@ -49,6 +51,21 @@ const tetrahedrons = createTetrahedrons(points)
 centerScene(scene, tetrahedrons)
 
 drawModel(scene, tetrahedrons)
+
+// Limit rendering calls to improve efficiency
+
+const timeBetweenDraws = 30
+let lastDrawTime = 0
+
+const canDraw = () => {
+	if (Date.now() - lastDrawTime < timeBetweenDraws) {
+		return false
+	}
+
+	lastDrawTime = Date.now()
+
+	return true
+}
 
 // Tranformation controls
 
@@ -58,6 +75,7 @@ $('main').onmouseout = () => $('main').isClicked = false
 
 $('main').onmousemove = e => {
 	if (!$('main').isClicked) return
+	if (!canDraw()) return
 
 	scene.clear()
 
@@ -80,6 +98,8 @@ $('main').onmousemove = e => {
 
 // Mouse-wheel to scale
 $('main').onwheel = e => {
+	if (!canDraw()) return
+
 	scene.clear()
 	scene.scale(e.deltaY > 0 ? 1.15 : 0.85)
 	drawModel(scene, tetrahedrons)
