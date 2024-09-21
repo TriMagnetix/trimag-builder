@@ -17,7 +17,7 @@ const triangles =
 	.shapes([
 		arrangement({
 			positionGrid: [
-				[0, 0, 0],
+				[0, 1, 0],
 				[0, 1, 0],
 				[1, 0, 1],
 			],
@@ -31,10 +31,10 @@ const triangles =
 			*/
 			spacing: 10,
 			triangleSpecs: {
-				width: 100,
-				vertexRad: 5,
-				sideRad: 25,
-				extrusion: 35,
+				width: 50,
+				vertexRad: 2.5,
+				sideRad: 12.5,
+				extrusion: 17.5,
 			},
 		}),
 	])
