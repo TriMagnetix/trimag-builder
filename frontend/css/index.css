@@ -1,5 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
+:root {
+	--black: #101510;
+	--white: #fbf5f3;
+	--gray: #c2c5c2;
+	--green: #008000;
+	--dark-green: #005300;
+	--light-green: #00ff00;
+	--lime-green: #32cc32;
+}
+
 body {
 	margin: 0;
+	font-size: 16px;
+	font-family: "Manrope", sans-serif;
 }
 
 main {
@@ -9,9 +23,127 @@ main {
 	height: 100vh;
 	max-height: 100vh;
 	overflow: hidden;
+	background: var(--white);
+	color: var(--black);
 }
 
-#svg-target {
-	opacity: 0;
+#svg-target { opacity: 0;
 	position: absolute;
+}
+
+#show-controls-button {
+	border-radius: 50%;
+	padding 10px;
+	width: 40px;
+	height: 40px;
+	background: no-repeat center / 20px var(--white) url('/img/bars-black.svg');
+	transition: 0.2s;
+}
+
+#show-controls-button:hover, #show-controls-button.selected {
+	background: no-repeat center / 20px var(--black) url('/img/bars-white.svg');
+	cursor: pointer;
+}
+
+#show-controls-button {
+	border-radius: 50%;
+}
+
+#triangle-grid {
+	display: grid;
+	grid-gap: 10px;
+	grid-template-columns: auto auto auto;
+	padding: 20px;
+	background: var(--white);
+	border-radius: 5px;
+	height: 300px;
+}
+
+#triangle-grid .triangle {
+	background: var(--white);
+	border: 1px solid var(--gray);
+	border-radius: 5px;
+	box-shadow: 1px 1px 1px var(--gray);
+}
+
+#triangle-grid .triangle:hover {
+	box-shadow: 2px 2px 5px var(--gray);
+}
+
+#triangle-grid .triangle.selected {
+	background: no-repeat center / 80% url('/img/triangle.svg');
+}
+
+#triangle-grid .triangle.selected.even-row {
+	background: no-repeat center / 80% url('/img/triangle-flipped.svg');
+}
+
+.row {
+	display: flex;
+	flex-direction: row;
+	grid-gap: 20px;
+}
+
+.col {
+	display: flex;
+	flex-direction: column;
+	grid-gap: 20px;
+}
+
+.outline {
+	background: linear-gradient(45deg, var(--green), var(--light-green));
+	padding: 2px;
+	border: 2px solid var(--white);
+	border-radius: 9px;
+}
+
+.controls {
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	width: 400px;
+	max-width: calc(100vw - 40px);
+}
+
+.number-input {
+	display: flex;
+	flex-direction: column;
+	grid-gap: 5px;
+	max-width: calc(50% - 10px);
+}
+
+.number-input label {
+	width: fit-content;
+	background: var(--white);
+	border-radius: 5px;
+	padding: 0 20px;
+}
+
+.number-input input {
+	padding: 10px 20px;
+	background: var(--white);
+	border: 0;
+	border-radius: 5px;
+	max-width: calc(100% - 40px);
+	font-size: 16px;
+}
+
+.pill-button {
+	color: var(--white);
+	background: 0 / 100% linear-gradient(45deg, var(--green), var(--light-green));
+	padding: 10px 20px;
+	font-weight: bold;
+	transition: 0.2s;
+	border: 2px solid var(--white);
+	border-radius: 20px;
+	text-align: center;
+	width: 100%;
+}
+
+.pill-button:hover {
+	cursor: pointer;
+	box-shadow: 2px 2px 5px var(--gray);
+	background-position: 25%;
+	background-size: 150%;
+	border: 2px solid transparent;
 }

@@ -7,6 +7,52 @@
 	</head>
 	<body>
 		<div id="svg-target"></div>
+
+		<div class="controls col">
+			<div id="show-controls-button" class="selected"></div>
+
+			<div id="show-controls-target" class="col">
+				<div class="row">
+					<div class="number-input">
+						<label>Rows:</label>
+						<div class="outline">
+							<input type="number" id="rows-input" value="5" min="1" />
+						</div>
+					</div>
+					<div class="number-input">
+						<label>Columns:</label>
+						<div class="outline">
+							<input type="number" id="columns-input" value="5" min="1" />
+						</div>
+					</div>
+				</div>
+
+				<div class="outline">
+					<div id="triangle-grid">
+						<!--Dynamically generated-->
+						<div class="triangle selected"></div>
+						<div class="triangle"></div>
+						<div class="triangle selected"></div>
+						<div class="triangle"></div>
+						<div class="triangle selected even-row"></div>
+						<div class="triangle"></div>
+						<div class="triangle"></div>
+						<div class="triangle selected"></div>
+						<div class="triangle"></div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="pill-button">
+						Model
+					</div>
+					<div class="pill-button">
+						Simulate
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<main>
 		</main>
 	</body>

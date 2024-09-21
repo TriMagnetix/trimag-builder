@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 448 384"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="bars-white.svg"
+   width="448"
+   height="384"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.5703125"
+     inkscape:cx="224.1592"
+     inkscape:cy="191.68159"
+     inkscape:window-width="1920"
+     inkscape:window-height="1008"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+  <path
+     fill="#101510"
+     d="M 0,32 C 0,14.3 14.3,0 32,0 h 384 c 17.7,0 32,14.3 32,32 0,17.7 -14.3,32 -32,32 H 32 C 14.3,64 0,49.7 0,32 Z m 0,160 c 0,-17.7 14.3,-32 32,-32 h 384 c 17.7,0 32,14.3 32,32 0,17.7 -14.3,32 -32,32 H 32 C 14.3,224 0,209.7 0,192 Z m 448,160 c 0,17.7 -14.3,32 -32,32 H 32 C 14.3,384 0,369.7 0,352 0,334.3 14.3,320 32,320 h 384 c 17.7,0 32,14.3 32,32 z"
+     id="path1"
+     style="fill:#fbf5f3;fill-opacity:1" />
+</svg>

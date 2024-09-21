@@ -164,7 +164,7 @@ export const centerScene = (scene, tetrahedrons) => {
 			-height / 2 - Math.min(...Ys),
 			-depth / 2 - Math.min(...Zs),
 		)
-		.scale(1.5 / Math.max(width, height))
+		.scale(3 / Math.max(width, height))
 		.clear()
 
 	drawModel(scene, tetrahedrons)
