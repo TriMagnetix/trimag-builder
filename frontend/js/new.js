@@ -12,6 +12,8 @@ import {
 const scene = new Scene()
 	.project(2, $('canvas').width / $('canvas').height)
 
+let tetrahedrons = []
+
 const renderMesh = async (positionGrid) => {
 	const triangles =
 		svg()
@@ -34,7 +36,7 @@ const renderMesh = async (positionGrid) => {
 
 	points = extrudePoints(points, 2)
 
-	const tetrahedrons = createTetrahedrons(points)
+	tetrahedrons = createTetrahedrons(points)
 
 	centerScene(scene, tetrahedrons)
 

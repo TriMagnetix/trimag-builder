@@ -27,6 +27,11 @@ main {
 	color: var(--black);
 }
 
+input:focus {
+	outline: none;
+	box-shadow: 0 0 7px var(--lime-green)
+}
+
 #svg-target { opacity: 0;
 	position: absolute;
 }
