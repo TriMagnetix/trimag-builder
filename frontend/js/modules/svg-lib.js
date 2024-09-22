@@ -137,8 +137,8 @@ export const svg2points = async svg => {
 
 	ctx.drawImage(bitmap, 0, 0)
 
-	const points = Array(canvas.width).fill(0)
-		.map(_ => Array(canvas.height))
+	const points = Array(canvas.height).fill(0)
+		.map(_ => Array(canvas.width))
 
 	ctx.getImageData(0, 0, canvas.width, canvas.height).data
 		.forEach((byte, i) => {

@@ -12,45 +12,150 @@ import {
 const scene = new Scene()
 	.project(2, $('canvas').width / $('canvas').height)
 
-const triangles =
-	svg()
-	.shapes([
-		arrangement({
-			positionGrid: [
-				[0, 1, 0],
-				[0, 1, 0],
-				[1, 0, 1],
-			],
-			/*
-			positionGrid: [
-				[0, 1, 0, 1, 0, 1],
-				[0, 1, 0, 1, 0, 1],
-				[1, 0, 1, 0, 1, 0],
-				[1, 0, 1, 0, 1, 0],
-			],
-			*/
-			spacing: 10,
-			triangleSpecs: {
-				width: 50,
-				vertexRad: 2.5,
-				sideRad: 12.5,
-				extrusion: 17.5,
-			},
-		}),
-	])
-	.renderTo($('#svg-target'))
-	.fitContent()
+const renderMesh = async (positionGrid) => {
+	const triangles =
+		svg()
+		.shapes([
+			arrangement({
+				positionGrid,
+				spacing: 10,
+				triangleSpecs: {
+					width: 50,
+					vertexRad: 2.5,
+					sideRad: 12.5,
+					extrusion: 17.5,
+				},
+			}),
+		])
+		.renderTo($('#svg-target'))
+		.fitContent()
 
-let points = await svg2points(triangles)
+	let points = await svg2points(triangles)
 
-points = extrudePoints(points, 2)
-console.log(points)
+	points = extrudePoints(points, 2)
 
-const tetrahedrons = createTetrahedrons(points)
+	const tetrahedrons = createTetrahedrons(points)
 
-centerScene(scene, tetrahedrons)
+	centerScene(scene, tetrahedrons)
 
-drawModel(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons)
+}
+
+// Triangle grid controls
+
+const toggleControls = ({ target }) => {
+	if (target.classList.contains('selected')) {
+		target.classList.remove('selected')
+		$('#show-controls-target').classList.add('hidden')
+	} else {
+		target.classList.add('selected')
+		$('#show-controls-target').classList.remove('hidden')
+	}
+}
+
+const getPositionGrid = () => {
+	let isEvenRow = false
+	const positionGrid = [[]]
+
+	Array.from($('#triangle-grid').children).forEach(c => {
+		if (isEvenRow != c.classList.contains('even-row')) {
+			positionGrid.unshift([])
+			isEvenRow = c.classList.contains('even-row')
+		}
+
+		positionGrid[0]
+			.push(c.classList.contains('selected'))
+	})
+
+	return positionGrid
+}
+
+const toggleTriangle = ({ target }) => {
+	target.classList.contains('selected')
+		? target.classList.remove('selected')
+		: target.classList.add('selected')
+	
+	renderMesh(getPositionGrid())
+}
+
+const makeTriangleGrid = (positionGrid) => {
+	const rows = positionGrid.length
+	const cols = positionGrid[0].length
+
+	$('#triangle-grid').innerHTML = '';
+	$('#triangle-grid').style['grid-template-columns'] =
+		Array(cols).fill(0).map(_ => 'auto').join(' ')
+	
+	// Rows are read backwards to match the drawing coordinate system
+	for (let i = rows - 1; i >= 0; i--) {
+		for (let j = 0; j < cols; j++) {
+			const cell = document.createElement('div')
+			
+			cell.classList.add(...[
+				'triangle',
+				(i + 1) % 2 == 0 && 'even-row',
+				positionGrid[i][j] && 'selected',
+			].filter(c => c))
+
+			cell.onclick = toggleTriangle
+			
+			$('#triangle-grid').appendChild(cell)
+		}
+	}
+
+	renderMesh(positionGrid)
+}
+
+const changeNumRows = ({ target }) => {
+	if (target.value < 1) target.value = 1
+
+	const rows = target.value
+	const cols = $('#cols-input').value
+	const positionGrid = getPositionGrid()
+
+	while (positionGrid.length > rows)
+		positionGrid.splice(-1)
+
+	while (positionGrid.length < rows)
+		positionGrid.push(Array(cols).fill(0))
+
+	makeTriangleGrid(positionGrid)
+}
+
+const changeNumCols = ({ target }) => {
+	if (target.value < 1) target.value = 1
+
+	const rows = $('#rows-input').value
+	const cols = target.value
+	const positionGrid = getPositionGrid()
+
+	while (positionGrid[0].length > cols)
+		positionGrid.forEach(row => row.splice(-1))
+
+	while (positionGrid[0].length < cols)
+		positionGrid.forEach(row => row.push(0))
+
+	makeTriangleGrid(positionGrid)
+}
+
+$('#show-controls-button').onclick = toggleControls
+$('#rows-input').onclick = changeNumRows
+$('#rows-input').onblur = changeNumRows
+$('#rows-input').onkeypress = (e) => e.key == 'Enter' ? changeNumRows(e) : e
+$('#cols-input').onclick = changeNumCols
+$('#cols-input').onblur = changeNumCols
+$('#cols-input').onkeypress = (e) => e.key == 'Enter' ? changeNumCols(e) : e
+
+// Initial state
+
+$('#rows-input').value = 3
+$('#cols-input').value = 3
+
+makeTriangleGrid([
+	[0, 1, 0],
+	[0, 1, 0],
+	[1, 0, 1],
+])
 
 // Limit rendering calls to improve efficiency
 
