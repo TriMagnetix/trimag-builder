@@ -108,7 +108,7 @@ export default class Scene {
 	}
 
 	reset () {
-		this.matrices.mode = matLib.identity
+		this.matrices.model = matLib.identity
 
 		return this
 	}
