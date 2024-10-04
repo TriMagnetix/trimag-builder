@@ -36,7 +36,8 @@ const renderMesh = async (positionGrid) => {
 
 	points = extrudePoints(points, 2)
 
-	tetrahedrons = createTetrahedrons(points)
+	//tetrahedrons = createTetrahedrons(points)
+	tetrahedrons = await (await fetch('../res/triangle.json')).json()
 
 	centerScene(scene, tetrahedrons)
 

@@ -126,7 +126,8 @@ export const drawModel = (scene, tetrahedrons) => {
 			const darkGreen = [0, 0.2, 0, 1]
 			const lightGreen = [0, 1, 0, 1]
 
-			return i % 3 == i % 6 ? green : lightGreen
+			return lightGreen
+			//return i % 3 == i % 6 ? green : lightGreen
 		})
 
 	scene.drawTriangles(positions, colors)
@@ -165,6 +166,7 @@ export const centerScene = (scene, tetrahedrons) => {
 			-depth / 2 - Math.min(...Zs),
 		)
 		.scale(3 / Math.max(width, height))
+		.rotate(0.01, 0.01, 0) // outlines are invisible if viewed perfectly from the front
 		.clear()
 
 	drawModel(scene, tetrahedrons)
