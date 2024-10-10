@@ -14,9 +14,9 @@ def parse_meshfile(meshfile):
 	points = [
 
 		{
-			'x': x,
-			'y': y,
-			'z': z,
+			'x': float(x),
+			'y': float(y),
+			'z': float(z),
 			'exterior': True, # TODO: determine if the point is exterior
 		}
 

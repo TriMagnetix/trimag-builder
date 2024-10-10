@@ -7,40 +7,19 @@ import {
 	createTetrahedrons,
 	drawModel,
 	centerScene,
+	arrangeModel,
 } from './modules/model-utils.js'
 
 const scene = new Scene()
-	.project(2, $('canvas').width / $('canvas').height)
+	.project(1, $('canvas').width / $('canvas').height)
 
 let tetrahedrons = []
 
 const renderMesh = async (positionGrid) => {
-	const triangles =
-		svg()
-		.shapes([
-			arrangement({
-				positionGrid,
-				spacing: 10,
-				triangleSpecs: {
-					width: 50,
-					vertexRad: 2.5,
-					sideRad: 12.5,
-					extrusion: 17.5,
-				},
-			}),
-		])
-		.renderTo($('#svg-target'))
-		.fitContent()
-
-	let points = await svg2points(triangles)
-
-	points = extrudePoints(points, 2)
-
-	//tetrahedrons = createTetrahedrons(points)
-	tetrahedrons = await (await fetch('../res/triangle.json')).json()
+	const componentModel = await (await fetch('../res/triangle.json')).json()
+	tetrahedrons = arrangeModel(positionGrid, componentModel)
 
 	centerScene(scene, tetrahedrons)
-
 	drawModel(scene, tetrahedrons)
 }
 
@@ -158,6 +137,11 @@ makeTriangleGrid([
 	[0, 1, 0],
 	[0, 1, 0],
 	[1, 0, 1],
+])
+
+makeTriangleGrid([
+	[1],
+	[1],
 ])
 
 // Limit rendering calls to improve efficiency
