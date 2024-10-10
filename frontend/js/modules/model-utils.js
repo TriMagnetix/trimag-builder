@@ -97,6 +97,49 @@ export const createTetrahedrons = points => {
 	return tetrahedrons
 }
 
+export const arrangeModel = (positionGrid, componentModel) => {
+	const bounds = componentModel.flat().reduce((acc, point) => ({
+		min: {
+			x: point.x < acc.min.x ? point.x : acc.min.x,
+			y: point.y < acc.min.y ? point.y : acc.min.y,
+		},
+		max: {
+			x: point.x > acc.max.x ? point.x : acc.max.x,
+			y: point.y > acc.max.y ? point.y : acc.max.y,
+		}
+	}), {min: {x: 0, y: 0}, max: {x: 0, y: 0}})
+	const padding = 0.0
+	const pivot = {x: 0, y: 1 / 3.393} // TODO: calculate the correct pivot
+	const width = (bounds.max.x - bounds.min.x) * (1 + padding)
+	const height = (bounds.max.y - bounds.min.y) * (1 + padding)
+	const offset = {x: width * pivot.x, y: height * pivot.y}
+
+	const flipModelIfNeeded = (componentModel, i) => i % 2 == 1
+		? componentModel.map(tetrahedron =>
+			tetrahedron.map(point => ({
+				...point,
+				x: -point.x + offset.x,
+				y: -point.y + offset.y,
+			}))
+		)
+		: componentModel
+
+	const adjustPoints = (i, j) => flipModelIfNeeded(componentModel, i)
+		.map(tetrahedron =>
+			tetrahedron.map(point => ({
+				...point,
+				x: point.x + j * width,
+				y: point.y + i * height,
+			}))
+		)
+
+	return positionGrid.flatMap((row, i) =>
+		row.map((col, j) =>
+			col ? adjustPoints(i, j) : false
+		)
+	).filter(t => t).flat()
+}
+
 export const drawModel = (scene, tetrahedrons) => {
 	let colors, positions
 
