@@ -11,7 +11,7 @@ import {
 } from './modules/model-utils.js'
 
 const scene = new Scene()
-	.project(1, $('canvas').width / $('canvas').height)
+	.project(2, $('canvas').width / $('canvas').height)
 
 let tetrahedrons = []
 
