@@ -139,11 +139,6 @@ makeTriangleGrid([
 	[1, 0, 1],
 ])
 
-makeTriangleGrid([
-	[1],
-	[1],
-])
-
 // Limit rendering calls to improve efficiency
 
 const timeBetweenDraws = 30

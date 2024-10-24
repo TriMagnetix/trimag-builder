@@ -97,7 +97,7 @@ export const createTetrahedrons = points => {
 	return tetrahedrons
 }
 
-export const arrangeModel = (positionGrid, componentModel) => {
+export const arrangeModel = (positionGrid, componentModel, padding) => {
 	const bounds = componentModel.flat().reduce((acc, point) => ({
 		min: {
 			x: point.x < acc.min.x ? point.x : acc.min.x,
@@ -108,10 +108,13 @@ export const arrangeModel = (positionGrid, componentModel) => {
 			y: point.y > acc.max.y ? point.y : acc.max.y,
 		}
 	}), {min: {x: 0, y: 0}, max: {x: 0, y: 0}})
-	const padding = 0.0
-	const pivot = {x: 0, y: 1 / 3.393} // TODO: calculate the correct pivot
-	const width = (bounds.max.x - bounds.min.x) * (1 + padding)
-	const height = (bounds.max.y - bounds.min.y) * (1 + padding)
+	padding = {x: 0.01, y: 0} // TODO: don't override padding once width and height is included in the component model
+
+	// TODO: include the pivot, width, and height within the component model
+	const pivot = {x: 0, y: 1 / 3.093}
+	const width = (bounds.max.x - bounds.min.x) * (1 + padding.x)
+	const height = (bounds.max.y - bounds.min.y) * (1 + padding.y)
+
 	const offset = {x: width * pivot.x, y: height * pivot.y}
 
 	const flipModelIfNeeded = (componentModel, i) => i % 2 == 1
