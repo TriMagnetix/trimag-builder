@@ -10,11 +10,18 @@ import {
 	arrangeModel,
 } from './modules/model-utils.js'
 
+/*
+ * Scene management
+ */
+
 const scene = new Scene()
 	.project(2, $('canvas').width / $('canvas').height)
 
 let tetrahedrons = []
 
+// Render a mesh to the screen using a position grid as a guide
+//
+// positionGrid: [[0, 1, 0], ...] -- 1s are where meshes get placed
 const renderMesh = async (positionGrid) => {
 	const componentModel = await (await fetch('../res/triangle.json')).json()
 	tetrahedrons = arrangeModel(positionGrid, componentModel)
@@ -23,8 +30,13 @@ const renderMesh = async (positionGrid) => {
 	drawModel(scene, tetrahedrons)
 }
 
-// Triangle grid controls
+/*
+ * Triangle grid controls
+ */
 
+// Show or hide the controls overlay
+//
+// target: The element that was clicked (menu button)
 const toggleControls = ({ target }) => {
 	if (target.classList.contains('selected')) {
 		target.classList.remove('selected')
@@ -35,6 +47,8 @@ const toggleControls = ({ target }) => {
 	}
 }
 
+// Construct the position grid based on the user's
+// selection in the controls overlay
 const getPositionGrid = () => {
 	let isEvenRow = false
 	const positionGrid = [[]]
@@ -52,6 +66,10 @@ const getPositionGrid = () => {
 	return positionGrid
 }
 
+// Select or deselect a location for a triangle in the
+// controls overlay position grid
+//
+// target: The element that was clicked (grid cell)
 const toggleTriangle = ({ target }) => {
 	target.classList.contains('selected')
 		? target.classList.remove('selected')
@@ -60,6 +78,10 @@ const toggleTriangle = ({ target }) => {
 	renderMesh(getPositionGrid())
 }
 
+// Arrange triangle meshes according to the position grid
+// and render them to the screen
+//
+// positionGrid: [[0, 1, 0], ...] -- 1s are where meshes get placed
 const makeTriangleGrid = (positionGrid) => {
 	const rows = positionGrid.length
 	const cols = positionGrid[0].length
@@ -88,6 +110,9 @@ const makeTriangleGrid = (positionGrid) => {
 	renderMesh(positionGrid)
 }
 
+// Change the number of rows in the position grid on the UI
+//
+// target: The element that was changed (row number input)
 const changeNumRows = ({ target }) => {
 	if (target.value < 1) target.value = 1
 
@@ -104,6 +129,9 @@ const changeNumRows = ({ target }) => {
 	makeTriangleGrid(positionGrid)
 }
 
+// Change the number of columns in the position grid on the UI
+//
+// target: The element that was changed (column number input)
 const changeNumCols = ({ target }) => {
 	if (target.value < 1) target.value = 1
 
@@ -120,6 +148,12 @@ const changeNumCols = ({ target }) => {
 	makeTriangleGrid(positionGrid)
 }
 
+/*
+ * View initialization
+ */
+
+// Add event functions to UI controls
+
 $('#show-controls-button').onclick = toggleControls
 $('#rows-input').onclick = changeNumRows
 $('#rows-input').onblur = changeNumRows
@@ -128,7 +162,7 @@ $('#cols-input').onclick = changeNumCols
 $('#cols-input').onblur = changeNumCols
 $('#cols-input').onkeypress = (e) => e.key == 'Enter' ? changeNumCols(e) : e
 
-// Initial state
+// Initial position grid state
 
 $('#rows-input').value = 3
 $('#cols-input').value = 3
@@ -154,12 +188,17 @@ const canDraw = () => {
 	return true
 }
 
-// Tranformation controls
+/*
+ * Transformation controls
+ */
 
 $('main').onmousedown = () => $('main').isClicked = true
 $('main').onmouseup = () => $('main').isClicked = false
 $('main').onmouseout = () => $('main').isClicked = false
 
+// Rotate and translate by dragging the mouse
+//
+// e: Triggered event object (mouse movement)
 $('main').onmousemove = e => {
 	if (!$('main').isClicked) return
 	if (!canDraw()) return
@@ -183,7 +222,9 @@ $('main').onmousemove = e => {
 	drawModel(scene, tetrahedrons)
 }
 
-// Mouse-wheel to scale
+// Scroll the mouse-wheel to scale
+//
+// e: Triggered event object (mouse wheel scroll)
 $('main').onwheel = e => {
 	if (!canDraw()) return
 
@@ -192,7 +233,7 @@ $('main').onwheel = e => {
 	drawModel(scene, tetrahedrons)
 }
 
-// Resize canvas when it's containers size changes
+// Resize the canvas when its container's size changes
 setInterval(() => {
 	if (
 		$('canvas').width == $('main').clientWidth
