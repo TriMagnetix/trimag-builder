@@ -1,11 +1,15 @@
 import { svg, group, path, circle } from './svg-lib.js'
 
+// Draws a concave triangle according
+// to the provided parameters
+// 
+// returns an svg object (concave triangle)
 export const triangle = ({
-	position: {x, y},
-	width: w,
-	vertexRad: vr,
-	sideRad: sr,
-	extrusion: e,
+	position: {x, y},	// Position in space
+	width: w,			// Size of the base
+	vertexRad: vr,		// Curvature of the tips
+	sideRad: sr,		// Curvature of the sides
+	extrusion: e,		// Length of the arms
 }) => {
 	const root3 = Math.sqrt(3)
 	const root3_2 = root3 / 2
@@ -41,12 +45,16 @@ export const triangle = ({
 		])
 }
 
+// Draws an upside-down concave triangle
+// according to the provided parameters
+// 
+// returns an svg object (upside-down concave triangle)
 export const invertedTriangle = ({
-	position: {x, y},
-	width: w,
-	vertexRad: vr,
-	sideRad: sr,
-	extrusion: e,
+	position: {x, y},	// Position in space
+	width: w,			// Size of the base
+	vertexRad: vr,		// Curvature of the tips
+	sideRad: sr,		// Curvature of the sides
+	extrusion: e,		// Length of the arms
 }) => {
 	const root3 = Math.sqrt(3)
 	const root3_2 = root3 / 2
@@ -80,15 +88,18 @@ export const invertedTriangle = ({
 		])
 }
 
+// Draws an arrangement of several concave triangles
+// according to the provided parameters
+//
+// returns an svg object (arrangement of triangles)
 export const arrangement = ({
-	positionGrid: pg, // bool[][]
-	spacing: s,
-	triangleSpecs,
+	positionGrid: pg,		// [[0, 1, 0], ...] -- 1s are where triangles get placed
+	spacing: s,				// Space between triangles
 	triangleSpecs: {
-		width: w,
-		vertexRad: vr,
-		sideRad: sr,
-		extrusion: e,
+		width: w,			// Size of the bases
+		vertexRad: vr,		// Curvature of the tips
+		sideRad: sr,		// Curvature of the sides
+		extrusion: e,		// Length of the arms
 	}
 }) => {
 	const h = 0.5 * w * Math.sqrt(3)
