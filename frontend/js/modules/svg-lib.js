@@ -5,13 +5,13 @@
  * SVG elements such as `<svg>`, `<g>`, `<path>`, and `<circle>` with
  * chainable utility methods for setting attributes, rendering to a target
  * element, and adjusting dimensions. Additionally, it provides functions
- * for converting SVG elements to bitmaps and extracting point data.
+ * for converting SVG elements to bitmaps and extracting point data
  */
 
 /**
- * Constructs and renders SVG elements with utility functions.
+ * Constructs and renders SVG elements with utility functions
  *
- * @returns {SVGSVGElement} An SVG element with utility functions attached.
+ * @returns {SVGSVGElement} An SVG element with utility functions attached
  */
 export const svg = () => {
 	const elem = document.createElement('svg')
@@ -20,10 +20,10 @@ export const svg = () => {
 	elem.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
 	
 	/**
-	 * Sets the width of the SVG element.
+	 * Sets the width of the SVG element
 	 *
-	 * @param {number} n - The width to set.
-	 * @returns {SVGSVGElement} The SVG element with utility functions attached.
+	 * @param {number} n - The width to set
+	 * @returns {SVGSVGElement} The SVG element with utility functions attached
 	 */
 	elem.width = n => {
 		elem.setAttribute('width', n)
@@ -31,10 +31,10 @@ export const svg = () => {
 	}
 
 	/**
-	 * Sets the height of the SVG element.
+	 * Sets the height of the SVG element
 	 *
-	 * @param {number} n - The height to set.
-	 * @returns {SVGSVGElement} The SVG element with utility functions attached.
+	 * @param {number} n - The height to set
+	 * @returns {SVGSVGElement} The SVG element with utility functions attached
 	 */
 	elem.height = n => {
 		elem.setAttribute('height', n)
@@ -42,10 +42,10 @@ export const svg = () => {
 	}
 
 	/**
-	 * Appends shapes to the SVG element.
+	 * Appends shapes to the SVG element
 	 *
-	 * @param {SVGElement[]} s - An array of SVG elements to append.
-	 * @returns {SVGSVGElement} The SVG element with utility functions attached.
+	 * @param {SVGElement[]} s - An array of SVG elements to append
+	 * @returns {SVGSVGElement} The SVG element with utility functions attached
 	 */
 	elem.shapes = s => {
 		elem.append(...s)
@@ -53,10 +53,10 @@ export const svg = () => {
 	}
 
 	/**
-	 * Renders the SVG element as a child of the specified target element.
+	 * Renders the SVG element as a child of the specified target element
 	 *
-	 * @param {HTMLElement} targetElem - The target element to render into.
-	 * @returns {SVGSVGElement} The SVG element with utility functions attached.
+	 * @param {HTMLElement} targetElem - The target element to render into
+	 * @returns {SVGSVGElement} The SVG element with utility functions attached
 	 */
 	elem.renderTo = targetElem => {
 		targetElem.innerHTML = elem.outerHTML
@@ -67,10 +67,10 @@ export const svg = () => {
 	}
 
 	/**
-	 * Adjusts the SVG's dimensions to fit its content.
+	 * Adjusts the SVG's dimensions to fit its content
 	 *
-	 * @throws Will throw an error if `renderTo` has not been called.
-	 * @returns {SVGSVGElement} The SVG element with utility functions attached.
+	 * @throws Will throw an error if `renderTo` has not been called
+	 * @returns {SVGSVGElement} The SVG element with utility functions attached
 	 */
 	elem.fitContent = () => {
 		if (!_rendered) throw 'Must invoke `renderTo` before `fitContent`'
@@ -89,18 +89,18 @@ export const svg = () => {
 }
 
 /**
- * Constructs SVG groups.
+ * Constructs SVG groups
  *
- * @returns {SVGGElement} An SVG group with utility functions attached.
+ * @returns {SVGGElement} An SVG group with utility functions attached
  */
 export const group = () => {
 	const elem = document.createElement('g')
 
 	/**
-	 * Adds shapes to the SVG group.
+	 * Adds shapes to the SVG group
 	 *
-	 * @param {SVGElement[]} s - An array of SVG elements to append.
-	 * @returns {SVGGElement} The SVG group with utility functions attached.
+	 * @param {SVGElement[]} s - An array of SVG elements to append
+	 * @returns {SVGGElement} The SVG group with utility functions attached
 	 */
 	elem.shapes = s => {
 		elem.append(...s)
@@ -111,19 +111,19 @@ export const group = () => {
 }
 
 /**
- * Constructs SVG paths.
+ * Constructs SVG paths
  *
- * @returns {SVGPathElement} An SVG path with utility functions attached.
+ * @returns {SVGPathElement} An SVG path with utility functions attached
  */
 export const path = () => {
 	const elem = document.createElement('path')
 
 	/**
-	 * Moves the path cursor to a global position.
+	 * Moves the path cursor to a global position
 	 *
-	 * @param {number} x - The x-coordinate.
-	 * @param {number} y - The y-coordinate.
-	 * @returns {SVGPathElement} The SVG path with utility functions attached.
+	 * @param {number} x - The x-coordinate
+	 * @param {number} y - The y-coordinate
+	 * @returns {SVGPathElement} The SVG path with utility functions attached
 	 */
 	elem.M = (x, y) => {
 		const prev = elem.getAttribute('d') || ''
@@ -132,11 +132,11 @@ export const path = () => {
 	}
 
 	/**
-	 * Moves the path cursor relative to its previous position.
+	 * Moves the path cursor relative to its previous position
 	 *
-	 * @param {number} x - The relative x-coordinate.
-	 * @param {number} y - The relative y-coordinate.
-	 * @returns {SVGPathElement} The SVG path with utility functions attached.
+	 * @param {number} x - The relative x-coordinate
+	 * @param {number} y - The relative y-coordinate
+	 * @returns {SVGPathElement} The SVG path with utility functions attached
 	 */
 	elem.m = (x, y) => {
 		const prev = elem.getAttribute('d') || ''
@@ -145,11 +145,11 @@ export const path = () => {
 	}
 
 	/**
-	 * Draws a line relative to the path cursor's previous position.
+	 * Draws a line relative to the path cursor's previous position
 	 *
-	 * @param {number} x - The relative x-coordinate.
-	 * @param {number} y - The relative y-coordinate.
-	 * @returns {SVGPathElement} The SVG path with utility functions attached.
+	 * @param {number} x - The relative x-coordinate
+	 * @param {number} y - The relative y-coordinate
+	 * @returns {SVGPathElement} The SVG path with utility functions attached
 	 */
 	elem.l = (x, y) => {
 		const prev = elem.getAttribute('d') || ''
@@ -158,16 +158,16 @@ export const path = () => {
 	}
 
 	/**
-	 * Draws an arc relative to the path cursor's previous position.
+	 * Draws an arc relative to the path cursor's previous position
 	 *
-	 * @param {number} rx - The x-radius of the arc.
-	 * @param {number} ry - The y-radius of the arc.
-	 * @param {number} x - The x-coordinate of the arc's end point.
-	 * @param {number} y - The y-coordinate of the arc's end point.
-	 * @param {number} [sweep=1] - The sweep flag.
-	 * @param {number} [xRot=0] - The x-axis rotation.
-	 * @param {number} [large=0] - The large-arc flag.
-	 * @returns {SVGPathElement} The SVG path with utility functions attached.
+	 * @param {number} rx - The x-radius of the arc
+	 * @param {number} ry - The y-radius of the arc
+	 * @param {number} x - The x-coordinate of the arc's end point
+	 * @param {number} y - The y-coordinate of the arc's end point
+	 * @param {number} [sweep=1] - The sweep flag
+	 * @param {number} [xRot=0] - The x-axis rotation
+	 * @param {number} [large=0] - The large-arc flag
+	 * @returns {SVGPathElement} The SVG path with utility functions attached
 	 */
 	elem.a = (rx, ry, x, y, sweep=1, xRot=0, large=0) => {
 		const prev = elem.getAttribute('d') || ''
@@ -176,10 +176,10 @@ export const path = () => {
 	}
 
 	/**
-	 * Sets the fill color of the path.
+	 * Sets the fill color of the path
 	 *
-	 * @param {string} f - The fill color.
-	 * @returns {SVGPathElement} The SVG path with utility functions attached.
+	 * @param {string} f - The fill color
+	 * @returns {SVGPathElement} The SVG path with utility functions attached
 	 */
 	elem.fill = f => {
 		elem.setAttribute('fill', f)
@@ -189,18 +189,18 @@ export const path = () => {
 	return elem
 }
 /**
- * Constructs SVG circles.
+ * Constructs SVG circles
  *
- * @returns {SVGCircleElement} An SVG circle with utility functions attached.
+ * @returns {SVGCircleElement} An SVG circle with utility functions attached
  */
 export const circle = () => {
 	const elem = document.createElement('circle')
 
 	/**
-	 * Sets the x-coordinate of the circle's center.
+	 * Sets the x-coordinate of the circle's center
 	 *
-	 * @param {number} n - The x-coordinate.
-	 * @returns {SVGCircleElement} The SVG circle with utility functions attached.
+	 * @param {number} n - The x-coordinate
+	 * @returns {SVGCircleElement} The SVG circle with utility functions attached
 	 */
 	elem.cx = n => {
 		elem.setAttribute('cx', n)
@@ -208,10 +208,10 @@ export const circle = () => {
 	}
 
 	/**
-	 * Sets the y-coordinate of the circle's center.
+	 * Sets the y-coordinate of the circle's center
 	 *
-	 * @param {number} n - The y-coordinate.
-	 * @returns {SVGCircleElement} The SVG circle with utility functions attached.
+	 * @param {number} n - The y-coordinate
+	 * @returns {SVGCircleElement} The SVG circle with utility functions attached
 	 */
 	elem.cy = n => {
 		elem.setAttribute('cy', n)
@@ -219,10 +219,10 @@ export const circle = () => {
 	}
 
 	/**
-	 * Sets the radius of the circle.
+	 * Sets the radius of the circle
 	 *
-	 * @param {number} n - The radius.
-	 * @returns {SVGCircleElement} The SVG circle with utility functions attached.
+	 * @param {number} n - The radius
+	 * @returns {SVGCircleElement} The SVG circle with utility functions attached
 	 */
 	elem.r = n => {
 		elem.setAttribute('r', n)
@@ -230,10 +230,10 @@ export const circle = () => {
 	}
 
 	/**
-	 * Sets the fill color of the circle.
+	 * Sets the fill color of the circle
 	 *
-	 * @param {string} f - The fill color.
-	 * @returns {SVGCircleElement} The SVG circle with utility functions attached.
+	 * @param {string} f - The fill color
+	 * @returns {SVGCircleElement} The SVG circle with utility functions attached
 	 */
 	elem.fill = f => {
 		elem.setAttribute('fill', f)
@@ -244,10 +244,10 @@ export const circle = () => {
 }
 
 /**
- * Converts an SVG element to a bitmap.
+ * Converts an SVG element to a bitmap
  *
- * @param {SVGSVGElement} svg - The SVG element to convert.
- * @returns {Promise<ImageBitmap>} A promise that resolves to the bitmap.
+ * @param {SVGSVGElement} svg - The SVG element to convert
+ * @returns {Promise<ImageBitmap>} A promise that resolves to the bitmap
  */
 export const svg2bitmap = svg => {
 	const image = new Image()
@@ -261,10 +261,10 @@ export const svg2bitmap = svg => {
 }
 
 /**
- * Converts an SVG element into an array of points.
+ * Converts an SVG element into an array of points
  *
- * @param {SVGSVGElement} svg - The SVG element to convert.
- * @returns {Promise<Object[][]>} A promise that resolves to a 2D array of points.
+ * @param {SVGSVGElement} svg - The SVG element to convert
+ * @returns {Promise<Object[][]>} A promise that resolves to a 2D array of points
  */
 export const svg2points = async svg => {
 	const bitmap = await svg2bitmap(svg)
