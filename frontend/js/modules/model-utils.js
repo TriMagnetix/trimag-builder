@@ -1,11 +1,10 @@
-// TODO: fix this so that exterior is not always true
 export const extrudePoints = (points, layers) => Array(layers).fill(0)
 	.map((_, z) => points
 		.map((row, y) => row
 			.map((p, x) => ({
 				...p,
 				z,
-				exterior:
+				exterior: // TODO: fix this so that exterior is not always true
 					!points[0][x - 1]?.[y]
 					|| !points[0][x + 1]?.[y]
 					|| !points[0][x]?.[y - 1]
