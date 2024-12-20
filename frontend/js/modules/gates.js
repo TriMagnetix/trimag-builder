@@ -1,15 +1,34 @@
+/**
+ * @module gates
+ * This module provides functions to create and manipulate SVG shapes
+ * such as concave triangles, inverted triangles, and arrangements of triangles
+ */
+
 import { svg, group, path, circle } from './svg-lib.js'
 
-// Draws a concave triangle according
-// to the provided parameters
-// 
-// returns an svg object (concave triangle)
+/**
+ * @typedef {Object} TriangleParams
+ * @property {Object} position - The position of the triangle in space
+ * @property {number} position.x - The x-coordinate of the triangle
+ * @property {number} position.y - The y-coordinate of the triangle
+ * @property {number} width - The size of the base
+ * @property {number} vertexRad - The curvature of the tips
+ * @property {number} sideRad - The curvature of the sides
+ * @property {number} extrusion - The length of the arms
+ */
+
+/**
+ * Draws a concave triangle according to the provided parameters
+ * 
+ * @param {TriangleParams} params - The parameters for the triangle
+ * @returns {SVGSVGElement} An SVG object representing the concave triangle
+ */
 export const triangle = ({
-	position: {x, y},	// Position in space
-	width: w,			// Size of the base
-	vertexRad: vr,		// Curvature of the tips
-	sideRad: sr,		// Curvature of the sides
-	extrusion: e,		// Length of the arms
+	position: {x, y},
+	width: w,
+	vertexRad: vr,
+	sideRad: sr,
+	extrusion: e,
 }) => {
 	const root3 = Math.sqrt(3)
 	const root3_2 = root3 / 2
@@ -45,16 +64,18 @@ export const triangle = ({
 		])
 }
 
-// Draws an upside-down concave triangle
-// according to the provided parameters
-// 
-// returns an svg object (upside-down concave triangle)
+/**
+ * Draws an upside-down concave triangle according to the provided parameters
+ * 
+ * @param {TriangleParams} params - The parameters for the triangle
+ * @returns {SVGSVGElement} An SVG object representing the upside-down concave triangle
+ */
 export const invertedTriangle = ({
-	position: {x, y},	// Position in space
-	width: w,			// Size of the base
-	vertexRad: vr,		// Curvature of the tips
-	sideRad: sr,		// Curvature of the sides
-	extrusion: e,		// Length of the arms
+	position: {x, y},
+	width: w,
+	vertexRad: vr,
+	sideRad: sr,
+	extrusion: e,
 }) => {
 	const root3 = Math.sqrt(3)
 	const root3_2 = root3 / 2
@@ -88,10 +109,23 @@ export const invertedTriangle = ({
 		])
 }
 
-// Draws an arrangement of several concave triangles
-// according to the provided parameters
-//
-// returns an svg object (arrangement of triangles)
+/**
+ * @typedef {Object} ArrangementParams
+ * @property {number[][]} positionGrid - A grid of 1s and 0s where 1s indicate triangle placement
+ * @property {number} spacing - The space between triangles
+ * @property {Object} triangleSpecs - Specifications for the triangles
+ * @property {number} triangleSpecs.width - The size of the bases
+ * @property {number} triangleSpecs.vertexRad - The curvature of the tips
+ * @property {number} triangleSpecs.sideRad - The curvature of the sides
+ * @property {number} triangleSpecs.extrusion - The length of the arms
+ */
+
+/**
+ * Draws an arrangement of several concave triangles according to the provided parameters
+ * 
+ * @param {ArrangementParams} params - The parameters for the arrangement
+ * @returns {SVGSVGElement} An SVG object representing the arrangement of triangles
+ */
 export const arrangement = ({
 	positionGrid: pg,		// [[0, 1, 0], ...] -- 1s are where triangles get placed
 	spacing: s,				// Space between triangles
