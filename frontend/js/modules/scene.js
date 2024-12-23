@@ -1,8 +1,19 @@
+/**
+ * @module scene
+ * @description A module representing a WebGL scene for 3D rendering operations
+ */
+
 import { $ } from './common.js'
 import * as matLib from './matrix-lib.js'
 
 export default class Scene {
 
+	/**
+	 * Creates an instance of Scene
+	 *
+	 * @param {number|string} [width="100%"] - The width of the canvas
+	 * @param {number|string} [height="100%"] - The height of the canvas
+	 */
 	constructor (width, height) {
 		this.canvasSize = {
 			width: width || "100%",
@@ -20,6 +31,14 @@ export default class Scene {
 		return this
 	}
 
+	/**
+	 * Applies rotation to the model matrix
+	 *
+	 * @param {number} x - Rotation angle around the X-axis
+	 * @param {number} y - Rotation angle around the Y-axis
+	 * @param {number} z - Rotation angle around the Z-axis
+	 * @returns {Scene} The current Scene instance
+	 */
 	rotate (x, y, z) {
 		this.matrices.model = matLib.matrixMult(
 			this.matrices.model,
@@ -29,6 +48,14 @@ export default class Scene {
 		return this
 	}
 
+	/**
+	 * Applies translation to the model matrix
+	 *
+	 * @param {number} x - Translation along the X-axis
+	 * @param {number} y - Translation along the Y-axis
+	 * @param {number} z - Translation along the Z-axis
+	 * @returns {Scene} The current Scene instance
+	 */
 	translate (x, y, z) {
 		this.matrices.model = matLib.matrixMult(
 			this.matrices.model,
@@ -38,12 +65,27 @@ export default class Scene {
 		return this
 	}
 
+	/**
+	 * Applies a projection to the scene
+	 *
+	 * @param {number} scale - The scale factor for the projection
+	 * @param {number} [aspect=1] - The aspect ratio for the projection
+	 * @returns {Scene} The current Scene instance
+	 */
 	project (scale, aspect = 1) {
 		this.matrices.projection = matLib.project(scale, aspect)
 
 		return this
 	}
 
+	/**
+	 * Scales the model matrix
+	 *
+	 * @param {number} x - Scale factor along the X-axis
+	 * @param {number} [y=x] - Scale factor along the Y-axis
+	 * @param {number} [z=x] - Scale factor along the Z-axis
+	 * @returns {Scene} The current Scene instance
+	 */
 	scale (x, y = x, z = x) {
 		this.matrices.model = matLib.matrixMult(
 			this.matrices.model,
@@ -53,18 +95,37 @@ export default class Scene {
 		return this
 	}
 
+	/**
+	 * Draws triangles using the given positions and colors.
+	 * @param {Float32Array} positions - The vertex positions.
+	 * @param {Float32Array} colors - The vertex colors.
+	 * @returns {Scene} The current Scene instance.
+	 */
 	drawTriangles (positions, colors) {
 		this.draw(positions, colors, this.gl.TRIANGLES)
 
 		return this
 	}
 
+	/**
+	 * Draws lines using the given positions and colors.
+	 * @param {Float32Array} positions - The vertex positions.
+	 * @param {Float32Array} colors - The vertex colors.
+	 * @returns {Scene} The current Scene instance.
+	 */
 	drawLines (positions, colors) {
 		this.draw(positions, colors, this.gl.LINES)
 
 		return this
 	}
 
+	/**
+	 * Draws geometry based on positions, colors, and drawing mode.
+	 * @param {Float32Array} positions - The vertex positions.
+	 * @param {Float32Array} colors - The vertex colors.
+	 * @param {GLenum} mode - The drawing mode (e.g., gl.TRIANGLES, gl.LINES).
+	 * @returns {Scene} The current Scene instance.
+	 */
 	draw (positions, colors, mode) {
 		const gl = this.gl
 		const matrices = this.matrices
@@ -107,18 +168,31 @@ export default class Scene {
 		return this
 	}
 
+	/**
+	 * Resets the model matrix to the identity matrix.
+	 * @returns {Scene} The current Scene instance.
+	 */
 	reset () {
 		this.matrices.model = matLib.identity
 
 		return this
 	}
 
+	/**
+	 * Clears the canvas.
+	 */
 	clear () {
 		const gl = this.gl
 
 		gl.clear(gl.COLOR_BUFFER_BIT)
 	}
 
+	/**
+	 * Resizes the canvas to the given width and height.
+	 * @param {number} width - The new width of the canvas.
+	 * @param {number} height - The new height of the canvas.
+	 * @returns {Scene} The current Scene instance.
+	 */
 	resizeCanvas (width, height) {
 		const gl = this.gl
 
@@ -129,6 +203,12 @@ export default class Scene {
 		return this
 	}
 
+	/**
+	 * Initializes the WebGL context and sets up shaders.
+	 * @returns {WebGLRenderingContext} The WebGL rendering context.
+	 * @throws {string} Throws an error if WebGL is not supported.
+	 * @private
+	 */
 	_initGl () {
 		// Setup
 
