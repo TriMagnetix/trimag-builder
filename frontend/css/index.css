@@ -42,7 +42,7 @@ input:focus {
 	padding 10px;
 	width: 40px;
 	height: 40px;
-	background: no-repeat center / 20px var(--white) url('/img/bars-black.svg');
+	background: no-repeat center / 20px var(--white) url('../img/bars-black.svg');
 	transition: 0.2s;
 }
 
@@ -52,7 +52,7 @@ input:focus {
 }
 
 #show-controls-button.selected {
-	background: no-repeat center / 20px var(--black) url('/img/bars-white.svg');
+	background: no-repeat center / 20px var(--black) url('../img/bars-white.svg');
 	cursor: pointer;
 }
 
@@ -92,7 +92,7 @@ input:focus {
 }
 
 #triangle-grid .triangle.selected {
-	background-image: url('/img/triangle.svg');
+	background-image: url('../img/triangle.svg');
 }
 
 #triangle-grid .triangle.selected:hover {
@@ -100,7 +100,7 @@ input:focus {
 }
 
 #triangle-grid .triangle.selected.even-row {
-	background-image: url('/img/triangle-flipped.svg');
+	background-image: url('../img/triangle-flipped.svg');
 }
 
 .row {
