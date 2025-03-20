@@ -16,7 +16,7 @@ const scene = new Scene()
 let tetrahedrons = []
 
 const renderMesh = async (positionGrid) => {
-	const componentModel = await (await fetch('../res/triangle.json')).json()
+	const componentModel = await (await fetch(`${location.href}res/triangle.json`)).json()
 	tetrahedrons = arrangeModel(positionGrid, componentModel)
 
 	centerScene(scene, tetrahedrons)
