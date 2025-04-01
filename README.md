@@ -9,14 +9,16 @@ a framework for building logic gates for trimagnetix systems.
 - [x] add coordinates to graph
 - [x] export as nmesh
 - [x] export as neutral mesh
-- [ ] extrude
-- [ ] fix binary image
-- [ ] support different regions in nmesh export
-- [ ] render mesh
-- [ ] support periodic nodes
+- [x] extrude
+- [x] fix binary image
+- [x] support different regions in nmesh export
+- [x] render mesh
+- [x] support periodic nodes
 
 ### simulation automation
 
+- [ ] mesh to nmesh format
+- [ ] setup backend
 - [ ] define pinned regions and directions
 - [ ] create nmag script
 - [ ] run simulations
