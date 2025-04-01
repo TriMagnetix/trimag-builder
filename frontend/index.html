@@ -1,50 +1,59 @@
 <!DOCTYPE html>
 
 <html>
-	<head>
-		<script type="module" src="js/new.js"></script>
-		<link rel="stylesheet" type="text/css" href="css/index.css">
-	</head>
-	<body>
-		<div id="svg-target"></div>
 
-		<div class="controls col">
-			<div id="show-controls-button" class="selected"></div>
+<head>
+	<script type="module" src="js/new.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/index.css">
+</head>
 
-			<div id="show-controls-target" class="col">
-				<div class="row">
-					<div class="number-input">
-						<label>Rows:</label>
-						<div class="outline">
-							<input type="number" id="rows-input" value="5" min="1" />
-						</div>
-					</div>
-					<div class="number-input">
-						<label>Columns:</label>
-						<div class="outline">
-							<input type="number" id="cols-input" value="5" min="1" />
-						</div>
+<body>
+	<div id="svg-target"></div>
+
+	<div class="controls col">
+		<div id="show-controls-button" class="selected"></div>
+
+		<div id="show-controls-target" class="col">
+			<div class="row">
+				<div class="number-input">
+					<label>Rows:</label>
+					<div class="outline">
+						<input type="number" id="rows-input" value="5" min="1" />
 					</div>
 				</div>
-
-				<div class="outline">
-					<div id="triangle-grid">
-						<!--Dynamically generated-->
-					</div>
-				</div>
-
-				<div class="row">
-					<div class="pill-button">
-						Model
-					</div>
-					<div class="pill-button">
-						Simulate
+				<div class="number-input">
+					<label>Columns:</label>
+					<div class="outline">
+						<input type="number" id="cols-input" value="5" min="1" />
 					</div>
 				</div>
 			</div>
-		</div>
 
-		<main>
-		</main>
-	</body>
+			<div class="outline">
+				<div id="triangle-grid">
+					<!--Dynamically generated-->
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="pill-button">
+					Model
+				</div>
+				<div class="pill-button">
+					Simulate
+				</div>
+			</div>
+			<div class="row">
+				<div class="pill-button" id="download-nmesh-file">
+					Download Nmesh File
+				</div>
+			</div>
+		</div>
+	</div>
+	</div>
+
+	<main>
+	</main>
+</body>
+
 </html>
