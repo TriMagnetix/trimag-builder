@@ -13,12 +13,25 @@ import {
 const scene = new Scene()
 	.project(2, $('canvas').width / $('canvas').height)
 
+/**
+ * @typedef {Object} Point
+ * @property {boolean} exterior - If this point is visible when rendering.
+ * @property {number} x - The x coordinate of the point.
+ * @property {number} y - The y coordinate of the point.
+ * @property {number} z - The z coordinate of the point.
+ */
+
+/** 
+ * @type {Array<Array<Point>>} 
+ * An array of tetrahedrons, where each tetrahedron is an 
+ * array of 4 point objects. Each point is an object with 
+ * `x`, `y`, and `z` properties representing the 3D coordinates.
+*/
 let tetrahedrons = []
 
 const renderMesh = async (positionGrid) => {
-	const componentModel = await (await fetch(`${location.href}res/triangle.json`)).json()
+	const componentModel = await (await fetch(`${location.origin}/res/triangle.json`)).json()
 	tetrahedrons = arrangeModel(positionGrid, componentModel)
-
 	centerScene(scene, tetrahedrons)
 	drawModel(scene, tetrahedrons)
 }
@@ -120,6 +133,92 @@ const changeNumCols = ({ target }) => {
 	makeTriangleGrid(positionGrid)
 }
 
+/**
+ * Onclick function for converting tetrahedrons to Nmesh file.
+ * I haven't stress tested it, but it should fail when we have around a couple 
+ * million tetrahedrons. More efficient approaches will have to be considered then.
+ * https://nmag.readthedocs.io/en/latest/finite_element_mesh_generation.html#nmesh-file-format
+ * @param {Event} e
+ */
+const downloadNmeshFile = (e) => {
+	$('#download-nmesh-file').innerHTML = 'Generating...'
+	// Delimiter to use for point -> key generation
+	const DELIM = ','
+
+	/**
+ 	* @param {Point} point
+ 	*/
+	const generateKeyFromPoint = (point) => `${point.x}${DELIM}${point.y}${DELIM}${point.z}`;
+
+	/** @type {Array<Point>} 
+	 * An array to store unique nodes (points).
+	 */
+	const nodes = []
+
+	/** 
+	 * @type {Map<string, number>} 
+	 * A map to track unique nodes by their stringified coordinates, mapping to a node index. 
+	 */
+	const nodeMap = new Map()
+
+	/** @type {number} 
+	 * The index to assign to the next unique node. 
+	 */
+	let nodeIndex = 0
+
+	/** @type {Array<Array<number>>} 
+	 * An array to store tetrahedrons as arrays of node indices.
+	 * The inner array is always of length 4 and contains the node index for each point.
+	 */
+	const simplices = []
+
+	// Generate nodes and unique indexes for the node map
+	tetrahedrons.forEach((tetrahedron) => {
+		tetrahedron.forEach((point) => {
+			const key = generateKeyFromPoint(point)
+			if(!nodeMap.has(key)) {
+				nodeMap.set(key, nodeIndex)
+				nodes.push(point)
+				nodeIndex++
+			}
+		})
+	})
+
+	// Generate simplices
+	tetrahedrons.forEach((tetrahedron) => {
+		const tetrahedronAsNodeIndexes = tetrahedron.map((point) => nodeMap.get(generateKeyFromPoint(point)))
+		simplices.push(tetrahedronAsNodeIndexes);
+	})
+
+	/** @type {string} The content of the `.nmesh` file as a string. */
+	let nmeshFileContent = '# PYFEM mesh file version 1.0\n'
+
+	// TODO: If we aren't including surfaces in our file, do we need to include it here?
+	nmeshFileContent += `# dim = 3 nodes = ${nodes.length} simplices = ${simplices.length} periodic = 0\n` 
+
+	nmeshFileContent += `${nodes.length}\n`;
+	nodes.forEach((node, i) => {
+		nmeshFileContent += ` ${node.x} ${node.y} ${node.z}\n`
+	})
+
+	nmeshFileContent += `${simplices.length}\n`;
+	simplices.forEach((simplex) => {
+		nmeshFileContent += ` 1 ${simplex.join(' ')}\n`; // Format simplex in NMesh format
+	});
+
+	const nmeshFileBlob = new Blob([nmeshFileContent], {type: 'text/plain'})
+	
+	const a = document.createElement('a')
+	a.href = URL.createObjectURL(nmeshFileBlob)
+	a.download = 'generated.nmesh'
+	a.style.display = 'none'
+	document.body.appendChild(a)
+	a.click()
+	document.body.removeChild(a)
+
+	$('#download-nmesh-file').innerHTML = 'Download Nmesh File'
+};
+
 $('#show-controls-button').onclick = toggleControls
 $('#rows-input').onclick = changeNumRows
 $('#rows-input').onblur = changeNumRows
@@ -127,6 +226,7 @@ $('#rows-input').onkeypress = (e) => e.key == 'Enter' ? changeNumRows(e) : e
 $('#cols-input').onclick = changeNumCols
 $('#cols-input').onblur = changeNumCols
 $('#cols-input').onkeypress = (e) => e.key == 'Enter' ? changeNumCols(e) : e
+$('#download-nmesh-file').onclick = downloadNmeshFile
 
 // Initial state
 
