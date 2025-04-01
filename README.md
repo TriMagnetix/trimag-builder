@@ -17,7 +17,7 @@ a framework for building logic gates for trimagnetix systems.
 
 ### simulation automation
 
-- [ ] mesh to nmesh format
+- [x] mesh to nmesh format
 - [ ] setup backend
 - [ ] define pinned regions and directions
 - [ ] create nmag script
