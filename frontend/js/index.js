@@ -142,13 +142,13 @@ const changeNumCols = ({ target }) => {
  */
 const downloadNmeshFile = (e) => {
 	$('#download-nmesh-file').innerHTML = 'Generating...'
-	// Delimiter to use for point -> key generation
+	// Delimiter to use for point -> key generation & surface generation
 	const DELIM = ','
 
 	/**
- 	* @param {Point} point
- 	*/
-	const generateKeyFromPoint = (point) => `${point.x}${DELIM}${point.y}${DELIM}${point.z}`;
+ 	 * @param {Point} point
+ 	 */
+	const generateKeyFromPoint = ({x, y, z}) => [x, y, z].join(DELIM)
 
 	/** @type {Array<Point>} 
 	 * An array to store unique nodes (points).
@@ -172,11 +172,16 @@ const downloadNmeshFile = (e) => {
 	 */
 	const simplices = []
 
+    /** @type {Set<string>} 
+	 * Set to keep track of each unique surface
+	 */
+	const uniqueSurfaces = new Set()
+
 	// Generate nodes and unique indexes for the node map
 	tetrahedrons.forEach((tetrahedron) => {
 		tetrahedron.forEach((point) => {
 			const key = generateKeyFromPoint(point)
-			if(!nodeMap.has(key)) {
+			if (!nodeMap.has(key)) {
 				nodeMap.set(key, nodeIndex)
 				nodes.push(point)
 				nodeIndex++
@@ -187,27 +192,59 @@ const downloadNmeshFile = (e) => {
 	// Generate simplices
 	tetrahedrons.forEach((tetrahedron) => {
 		const tetrahedronAsNodeIndexes = tetrahedron.map((point) => nodeMap.get(generateKeyFromPoint(point)))
-		simplices.push(tetrahedronAsNodeIndexes);
+		simplices.push(tetrahedronAsNodeIndexes)
 	})
+
+	// Generate surfaces 
+	for (const simplex of simplices) {
+		/* Each tetrahedron has 4 surfaces so iterate through 
+		4 times to get each surface (3 point combination) */
+		for (let i = 0; i < 4; i++) {
+			const surface = [
+				simplex[(i + 1) % 4],
+				simplex[(i + 2) % 4],
+				simplex[(i + 3) % 4],
+			].sort((a, b) => a - b)
+			// Use a strigified version of the face as the key to the set
+			uniqueSurfaces.add(surface.join(DELIM))
+		}
+	}
+
+	/** @type {Array<Array<number>>} 
+	 * An array to store all unique tetrahedron surfaces.
+	 * The inner array is always of length 3 and contains the node index for each point.
+	 */
+	const surfaces = Array.from(uniqueSurfaces).map((face) =>
+		face.split(DELIM).map(Number)
+	)
 
 	/** @type {string} The content of the `.nmesh` file as a string. */
 	let nmeshFileContent = '# PYFEM mesh file version 1.0\n'
 
-	// TODO: If we aren't including surfaces in our file, do we need to include it here?
-	nmeshFileContent += `# dim = 3 nodes = ${nodes.length} simplices = ${simplices.length} periodic = 0\n` 
+	nmeshFileContent += `# dim = 3 nodes = ${nodes.length}` + 
+	` simplices = ${simplices.length} surfaces = ${surfaces.length} periodic = 0\n`
 
-	nmeshFileContent += `${nodes.length}\n`;
+	nmeshFileContent += `${nodes.length}\n`
 	nodes.forEach((node, i) => {
 		nmeshFileContent += ` ${node.x} ${node.y} ${node.z}\n`
 	})
 
-	nmeshFileContent += `${simplices.length}\n`;
+	nmeshFileContent += `${simplices.length}\n`
 	simplices.forEach((simplex) => {
-		nmeshFileContent += ` 1 ${simplex.join(' ')}\n`; // Format simplex in NMesh format
-	});
+		nmeshFileContent += ` 1 ${simplex.join(' ')}\n`
+	})
 
-	const nmeshFileBlob = new Blob([nmeshFileContent], {type: 'text/plain'})
-	
+	nmeshFileContent += `${surfaces.length}\n`
+	surfaces.forEach((surface) => {
+		// Use -1 and 1 as the default regions for all our surfaces
+		nmeshFileContent += ` -1 1 ${surface.join(' ')}\n`
+	})
+
+	// Finish file by adding a 0 at the end
+	nmeshFileContent += '0\n'
+
+	const nmeshFileBlob = new Blob([nmeshFileContent], { type: 'text/plain' })
+
 	const a = document.createElement('a')
 	a.href = URL.createObjectURL(nmeshFileBlob)
 	a.download = 'generated.nmesh'
@@ -217,7 +254,7 @@ const downloadNmeshFile = (e) => {
 	document.body.removeChild(a)
 
 	$('#download-nmesh-file').innerHTML = 'Download Nmesh File'
-};
+}
 
 $('#show-controls-button').onclick = toggleControls
 $('#rows-input').onclick = changeNumRows
