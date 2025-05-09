@@ -1,0 +1,3 @@
+flask
+docker
+flask_cors
