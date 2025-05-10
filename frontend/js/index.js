@@ -134,20 +134,19 @@ const changeNumCols = ({ target }) => {
 }
 
 /**
- * Onclick function for converting tetrahedrons to Nmesh file.
+ * Generates nmesh file blob based on tetrahedrons
  * I haven't stress tested it, but it should fail when we have around a couple 
  * million tetrahedrons. More efficient approaches will have to be considered then.
  * https://nmag.readthedocs.io/en/latest/finite_element_mesh_generation.html#nmesh-file-format
- * @param {Event} e
+ * @returns {Blob}
  */
-const downloadNmeshFile = (e) => {
-	$('#download-nmesh-file').innerHTML = 'Generating...'
+const generateNmeshFileBlob = () => {
 	// Delimiter to use for point -> key generation & surface generation
 	const DELIM = ','
 
 	/**
- 	 * @param {Point} point
- 	 */
+	 * @param {Point} point
+	 */
 	const generateKeyFromPoint = ({x, y, z}) => [x, y, z].join(DELIM)
 
 	/** @type {Array<Point>} 
@@ -172,7 +171,7 @@ const downloadNmeshFile = (e) => {
 	 */
 	const simplices = []
 
-    /** @type {Set<string>} 
+	/** @type {Set<string>} 
 	 * Set to keep track of each unique surface
 	 */
 	const uniqueSurfaces = new Set()
@@ -243,10 +242,55 @@ const downloadNmeshFile = (e) => {
 	// Finish file by adding a 0 at the end
 	nmeshFileContent += '0\n'
 
-	const nmeshFileBlob = new Blob([nmeshFileContent], { type: 'text/plain' })
+	return new Blob([nmeshFileContent], { type: 'text/plain' })
+}
 
+/**
+ * Onclick function for running the simulation
+ * @param {Event} e
+ */
+const runSimulation = async (e) => {
+	$('#run-simulation').innerHTML = 'Running...' 
+	// 1 day
+	const SIMULATION_TIMEOUT_IN_MS = 1 * 24 * 60 * 60 * 1000;
+
+	const body = new FormData()
+	body.append('file', generateNmeshFileBlob(), 'generated.nmesh')
+
+	try {
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), SIMULATION_TIMEOUT_IN_MS);
+		const response = await fetch('http://localhost:1235/nsim', {
+			signal: controller.signal,
+			method: 'POST',
+			body,
+		})
+		clearTimeout(timeoutId)
+		const responseBlob = await response.blob()
+		const downloadUrl = window.URL.createObjectURL(responseBlob);
+		const a = document.createElement('a');
+		a.href = downloadUrl;
+		a.download = 'nsim_dat.ndt';
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		window.URL.revokeObjectURL(downloadUrl);
+	} catch (e) {
+		window.alert(`Error running simulation ${e}`)
+	}
+
+	$('#run-simulation').innerHTML = 'Run Simulation'
+}
+
+/**
+ * Onclick function for downloading nmesh file from tetrahedrons
+ * @param {Event} e
+ */
+const downloadNmeshFile = (e) => {
+	$('#download-nmesh-file').innerHTML = 'Generating...'
+	
 	const a = document.createElement('a')
-	a.href = URL.createObjectURL(nmeshFileBlob)
+	a.href = URL.createObjectURL(generateNmeshFileBlob())
 	a.download = 'generated.nmesh'
 	a.style.display = 'none'
 	document.body.appendChild(a)
@@ -264,6 +308,7 @@ $('#cols-input').onclick = changeNumCols
 $('#cols-input').onblur = changeNumCols
 $('#cols-input').onkeypress = (e) => e.key == 'Enter' ? changeNumCols(e) : e
 $('#download-nmesh-file').onclick = downloadNmeshFile
+$('#run-simulation').onclick = runSimulation
 
 // Initial state
 
