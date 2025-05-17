@@ -13,6 +13,12 @@ import {
 const scene = new Scene()
 	.project(2, $('canvas').width / $('canvas').height)
 
+const positionGrid = [
+	[true, false, true],
+	[false, true, false],
+	[false, true, false]
+]
+
 /**
  * @typedef {Object} Point
  * @property {boolean} exterior - If this point is visible when rendering.
@@ -29,9 +35,9 @@ const scene = new Scene()
 */
 let tetrahedrons = []
 
-const renderMesh = async (positionGrid) => {
+const renderMesh = async () => {
 	const componentModel = await (await fetch('res/triangle.json')).json()
-	tetrahedrons = arrangeModel(positionGrid, componentModel)
+	tetrahedrons = arrangeModel(positionGrid.toReversed(), componentModel)
 	centerScene(scene, tetrahedrons)
 	drawModel(scene, tetrahedrons)
 }
@@ -48,32 +54,80 @@ const toggleControls = ({ target }) => {
 	}
 }
 
-const getPositionGrid = () => {
-	let isEvenRow = false
-	const positionGrid = [[]]
-
-	Array.from($('#triangle-grid').children).forEach(c => {
-		if (isEvenRow != c.classList.contains('even-row')) {
-			positionGrid.unshift([])
-			isEvenRow = c.classList.contains('even-row')
+/**
+ * Onclick function for toggling triangle visibility. 
+ * This function triggers whenever someone clicks on an item within the grid. 
+ * The cell contains the whole svg element and the target will contain the "top" most SVG element.
+ *
+ * @param {HTMLDivElement} cell - The div element representing a single cell within a grid structure.
+ * @param {{x: number, y: number}} coordinates - The coordinates of the cell in the grid.
+ * @returns {function({target: Element}): void} Event handler function.
+ */
+const toggleTriangle = (cell, coordinates) => ({ target }) => {
+	const MAG_BLUE = '#8792e5'
+	const MAG_RED = '#f07777'
+	const trianglePathSvgElement = cell.querySelector("#magnetized-triangle-svg #triangle")
+	/* If we get a click on a vertex and the triangle is visible we 
+	want to cycle through magnetizations (positive, negative, neutral) */
+	if (target.classList.contains('magnetization-vertex') && trianglePathSvgElement.classList.contains('visible')) {
+		if (target.classList.contains('visible') && target.getAttribute('fill') === MAG_BLUE) {
+			target.setAttribute('fill', MAG_RED)
+		} else if (target.classList.contains('visible') && target.getAttribute('fill') === MAG_RED) {
+			target.classList.remove('visible')
+			target.classList.add('hidden')
+		} else if (target.classList.contains('hidden')) {
+			target.setAttribute('fill', MAG_BLUE)
+			target.classList.remove('hidden')
+			target.classList.add('visible')
+		} else {
+			throw new Error(`Magnetization vertex contains invalid fill and/or class list: ${target}`)
 		}
+	} else {
+		if (trianglePathSvgElement?.classList.contains('visible')) {
+			positionGrid[coordinates.x][coordinates.y] = false
+			// If it is visible we are toggling to hide it, also hide the magnetization vertices
+			trianglePathSvgElement.classList.remove('visible')
+			trianglePathSvgElement.classList.add('hidden')
+			cell.querySelectorAll('#magnetized-triangle-svg .magnetization-vertex').forEach((magVertex) => {
+				magVertex.classList.remove('visible')
+				magVertex.classList.add('hidden')
+			})
+		} else if (trianglePathSvgElement?.classList.contains('hidden')) {
+			positionGrid[coordinates.x][coordinates.y] = true
+			trianglePathSvgElement.classList.remove('hidden')
+			trianglePathSvgElement.classList.add('visible')
+		} else {
+			throw new Error(`Triangle path element could not be found or has invalid class list: ${trianglePathSvgElement}`)
+		}
+	} 
 
-		positionGrid[0]
-			.push(c.classList.contains('selected'))
-	})
-
-	return positionGrid
+	renderMesh()
 }
 
-const toggleTriangle = ({ target }) => {
-	target.classList.contains('selected')
-		? target.classList.remove('selected')
-		: target.classList.add('selected')
-	
-	renderMesh(getPositionGrid())
+/**
+ * Loads an SVG image into a specified grid cell, potentially varying the SVG
+ * based on whether the cell is in an even or odd row.
+ *
+ * @param {HTMLDivElement} cell - The div element representing a single cell within a grid structure.
+ * @param {{x: number, y: number}} coordinates - The coordinates of the cell in the grid.
+ */
+const loadSvgForCell = async (cell, coordinates) => {
+	const svgUrl = `/img/magnetized-triangle${coordinates.x % 2 === 0 ? "" : "-flipped"}.svg`
+	const svgTextBody = await (await fetch(svgUrl)).text()
+	cell.innerHTML = svgTextBody
+	const trianglePathSvgElement = cell.querySelector("#magnetized-triangle-svg #triangle")
+	if (!positionGrid[coordinates.x][coordinates.y]) {
+		trianglePathSvgElement.classList.remove("visible")
+		trianglePathSvgElement.classList.add("hidden")
+		cell.querySelectorAll('#magnetized-triangle-svg .magnetization-vertex').forEach((magVertex) => {
+			magVertex.classList.remove('visible')
+			magVertex.classList.add('hidden')
+		})
+	}
+	cell.onclick = toggleTriangle(cell, coordinates)
 }
 
-const makeTriangleGrid = (positionGrid) => {
+const makeTriangleGrid = () => {
 	const rows = positionGrid.length
 	const cols = positionGrid[0].length
 
@@ -82,23 +136,17 @@ const makeTriangleGrid = (positionGrid) => {
 		Array(cols).fill(0).map(_ => 'auto').join(' ')
 	
 	// Rows are read backwards to match the drawing coordinate system
-	for (let i = rows - 1; i >= 0; i--) {
+	for (let i = 0; i < rows; i++) {
 		for (let j = 0; j < cols; j++) {
 			const cell = document.createElement('div')
-			
-			cell.classList.add(...[
-				'triangle',
-				(i + 1) % 2 == 0 && 'even-row',
-				positionGrid[i][j] && 'selected',
-			].filter(c => c))
-
-			cell.onclick = toggleTriangle
+			const coordinates = { x: i, y: j }
+			loadSvgForCell(cell, coordinates)
 			
 			$('#triangle-grid').appendChild(cell)
 		}
 	}
 
-	renderMesh(positionGrid)
+	renderMesh()
 }
 
 const changeNumRows = ({ target }) => {
@@ -106,7 +154,6 @@ const changeNumRows = ({ target }) => {
 
 	const rows = target.value
 	const cols = $('#cols-input').value
-	const positionGrid = getPositionGrid()
 
 	while (positionGrid.length > rows)
 		positionGrid.splice(-1)
@@ -114,7 +161,7 @@ const changeNumRows = ({ target }) => {
 	while (positionGrid.length < rows)
 		positionGrid.push(Array(cols).fill(0))
 
-	makeTriangleGrid(positionGrid)
+	makeTriangleGrid()
 }
 
 const changeNumCols = ({ target }) => {
@@ -122,7 +169,6 @@ const changeNumCols = ({ target }) => {
 
 	const rows = $('#rows-input').value
 	const cols = target.value
-	const positionGrid = getPositionGrid()
 
 	while (positionGrid[0].length > cols)
 		positionGrid.forEach(row => row.splice(-1))
@@ -130,7 +176,7 @@ const changeNumCols = ({ target }) => {
 	while (positionGrid[0].length < cols)
 		positionGrid.forEach(row => row.push(0))
 
-	makeTriangleGrid(positionGrid)
+	makeTriangleGrid()
 }
 
 /**

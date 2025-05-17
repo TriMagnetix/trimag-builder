@@ -39,7 +39,7 @@ input:focus {
 #show-controls-button {
 	border: 2px solid var(--white);
 	border-radius: 50%;
-	padding 10px;
+	padding: 10px;
 	width: 40px;
 	height: 40px;
 	background: no-repeat center / 20px var(--white) url('../img/bars-black.svg');
@@ -79,29 +79,21 @@ input:focus {
 	height: 300px;
 }
 
-#triangle-grid .triangle {
+#triangle-grid #magnetized-triangle-svg {
 	background: no-repeat center / contain content-box var(--white);
-	padding: 10px;
 	border: 1px solid var(--gray);
 	border-radius: 5px;
 	box-shadow: 1px 1px 1px var(--gray);
 }
 
-#triangle-grid .triangle:hover {
-	box-shadow: 2px 2px 5px var(--gray);
+#magnetized-triangle-svg .visible {
+	opacity: 1;
 }
 
-#triangle-grid .triangle.selected {
-	background-image: url('../img/triangle.svg');
+#magnetized-triangle-svg .hidden {
+	opacity: 0;
 }
 
-#triangle-grid .triangle.selected:hover {
-	
-}
-
-#triangle-grid .triangle.selected.even-row {
-	background-image: url('../img/triangle-flipped.svg');
-}
 
 .row {
 	display: flex;
