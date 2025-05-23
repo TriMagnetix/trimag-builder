@@ -20,6 +20,39 @@ const positionGrid = [
 ]
 
 /**
+ * @typedef {('positive'|'negative'|'none')} MagnetizationState
+ */
+
+/**
+ * Represents the possible states of magnetization.
+ * @enum {MagnetizationState}
+ */
+const Magnetization = {
+  POSITIVE: 'positive',
+  NEGATIVE: 'negative',
+  NONE: 'none',
+};
+
+/** 
+ * @typedef {Object} TriangleMagnetization
+ * @property {MagnetizationState} a - The magnetization state of the topmost vertex in a triangle. 
+ * This can be also be the top left vertex for a flipped triangle
+ * @property {MagnetizationState} b - The magnetization state of the bottom right vertex in a triangle. 
+ * This can be also be the top right vertex for a flipped triangle.
+ * @property {MagnetizationState} c - The magnetization state of the bottom left vertex in a triangle. 
+ * This can be also be the bottom vertex for a flipped triangle.
+ */
+
+/**
+ * 2D grid representing the magnetization states of the triangles.
+ *
+ * @type {Array<Array<TriangleMagnetization>>}
+ */
+const magnetizationGrid = Array.from({ length: positionGrid.length }, () =>
+  Array.from({ length: positionGrid[0].length }, () => ({a: Magnetization.NONE, b: Magnetization.NONE, c: Magnetization.NONE}))
+);
+
+/**
  * @typedef {Object} Point
  * @property {boolean} exterior - If this point is visible when rendering.
  * @property {number} x - The x coordinate of the point.
@@ -66,36 +99,47 @@ const toggleControls = ({ target }) => {
 const toggleTriangle = (cell, coordinates) => ({ target }) => {
 	const MAG_BLUE = '#8792e5'
 	const MAG_RED = '#f07777'
-	const trianglePathSvgElement = cell.querySelector("#magnetized-triangle-svg #triangle")
+	const triangleSvgClassList = cell.querySelector("#magnetized-triangle-svg #triangle").classList
+	const targetClassList = target.classList
+	const { x, y } = coordinates
+	// This will be a, b, or c depending on the vertex clicked
+	const vertex = [target.id.slice(-1)]
+	const triangleMagnetization = magnetizationGrid[x][y]
 	/* If we get a click on a vertex and the triangle is visible we 
 	want to cycle through magnetizations (positive, negative, neutral) */
-	if (target.classList.contains('magnetization-vertex') && trianglePathSvgElement.classList.contains('visible')) {
-		if (target.classList.contains('visible') && target.getAttribute('fill') === MAG_BLUE) {
+	if (targetClassList.contains('magnetization-vertex') && triangleSvgClassList.contains('visible')) {
+		if (targetClassList.contains('visible') && target.getAttribute('fill') === MAG_BLUE) {
 			target.setAttribute('fill', MAG_RED)
-		} else if (target.classList.contains('visible') && target.getAttribute('fill') === MAG_RED) {
-			target.classList.remove('visible')
-			target.classList.add('hidden')
-		} else if (target.classList.contains('hidden')) {
+			triangleMagnetization[vertex] = Magnetization.POSITIVE
+		} else if (targetClassList.contains('visible') && target.getAttribute('fill') === MAG_RED) {
+			triangleMagnetization[vertex] = Magnetization.NONE
+			targetClassList.remove('visible')
+			targetClassList.add('hidden')
+		} else if (targetClassList.contains('hidden')) {
 			target.setAttribute('fill', MAG_BLUE)
-			target.classList.remove('hidden')
-			target.classList.add('visible')
+			triangleMagnetization[vertex] = Magnetization.NEGATIVE
+			targetClassList.remove('hidden')
+			targetClassList.add('visible')
 		} else {
 			throw new Error(`Magnetization vertex contains invalid fill and/or class list: ${target}`)
 		}
 	} else {
-		if (trianglePathSvgElement?.classList.contains('visible')) {
-			positionGrid[coordinates.x][coordinates.y] = false
+		if (triangleSvgClassList.contains('visible')) {
+			positionGrid[x][y] = false
 			// If it is visible we are toggling to hide it, also hide the magnetization vertices
-			trianglePathSvgElement.classList.remove('visible')
-			trianglePathSvgElement.classList.add('hidden')
+			triangleSvgClassList.remove('visible')
+			triangleSvgClassList.add('hidden')
 			cell.querySelectorAll('#magnetized-triangle-svg .magnetization-vertex').forEach((magVertex) => {
 				magVertex.classList.remove('visible')
 				magVertex.classList.add('hidden')
 			})
-		} else if (trianglePathSvgElement?.classList.contains('hidden')) {
-			positionGrid[coordinates.x][coordinates.y] = true
-			trianglePathSvgElement.classList.remove('hidden')
-			trianglePathSvgElement.classList.add('visible')
+			triangleMagnetization.a = Magnetization.NONE
+			triangleMagnetization.b = Magnetization.NONE
+			triangleMagnetization.c = Magnetization.NONE
+		} else if (triangleSvgClassList.contains('hidden')) {
+			positionGrid[x][y] = true
+			triangleSvgClassList.remove('hidden')
+			triangleSvgClassList.add('visible')
 		} else {
 			throw new Error(`Triangle path element could not be found or has invalid class list: ${trianglePathSvgElement}`)
 		}
@@ -105,42 +149,71 @@ const toggleTriangle = (cell, coordinates) => ({ target }) => {
 }
 
 /**
- * Loads an SVG image into a specified grid cell, potentially varying the SVG
- * based on whether the cell is in an even or odd row.
+ * @type {Object.<string, string>}
+ * @description A cache to store SVG content, mapped by their URLs.
+ */
+const svgCache = {}
+
+/**
+ * Fetches an SVG from the given URL and caches it.
+ * If the SVG is already in the cache, return the cached version.
+ * This is needed because even if fetching it from local machine there is still overhead 
+ * from fetching it row*column amount of times, so this speeds up rendering of the grid.
  *
- * @param {HTMLDivElement} cell - The div element representing a single cell within a grid structure.
+ * @param {string} svgUrl - The URL of the SVG file to fetch.
+ * @returns {Promise<string>} A promise that resolves with the SVG content as a string.
+ */
+const getSvg = async (svgUrl) => {
+	if (svgUrl in svgCache) {
+		return svgCache[svgUrl]
+	} else {
+		const svgText = await (await fetch(svgUrl)).text()
+		svgCache[svgUrl] = svgText
+		return svgText
+	}
+}
+
+/**
+ * Loads a triangle SVG image into a specified grid cell, potentially varying 
+ * the triangle SVG based on whether the cell is in an even or odd row.
+ *
+ * @param {HTMLDivElement} cell - The div element representing a single cell within the grid.
  * @param {{x: number, y: number}} coordinates - The coordinates of the cell in the grid.
  */
 const loadSvgForCell = async (cell, coordinates) => {
-	const svgUrl = `/img/magnetized-triangle${coordinates.x % 2 === 0 ? "" : "-flipped"}.svg`
-	const svgTextBody = await (await fetch(svgUrl)).text()
+	const { x, y } = coordinates
+	const isInEvenRow = x % 2 === 0;
+	const svgUrl = `/img/magnetized-triangle${isInEvenRow ? "" : "-flipped"}.svg`
+	const svgTextBody = await getSvg(svgUrl)
 	cell.innerHTML = svgTextBody
 	const trianglePathSvgElement = cell.querySelector("#magnetized-triangle-svg #triangle")
-	if (!positionGrid[coordinates.x][coordinates.y]) {
+	// De-magnitize everything to start with
+	cell.querySelectorAll('#magnetized-triangle-svg .magnetization-vertex').forEach((magVertex) => {
+		magVertex.classList.remove('visible')
+		magVertex.classList.add('hidden')
+	})
+	// Hide the triangle if its not currently in the grid
+	if (!positionGrid[x][y]) {
 		trianglePathSvgElement.classList.remove("visible")
 		trianglePathSvgElement.classList.add("hidden")
-		cell.querySelectorAll('#magnetized-triangle-svg .magnetization-vertex').forEach((magVertex) => {
-			magVertex.classList.remove('visible')
-			magVertex.classList.add('hidden')
-		})
 	}
 	cell.onclick = toggleTriangle(cell, coordinates)
 }
 
-const makeTriangleGrid = () => {
+const makeTriangleGrid = async () => {
 	const rows = positionGrid.length
 	const cols = positionGrid[0].length
 
 	$('#triangle-grid').innerHTML = '';
 	$('#triangle-grid').style['grid-template-columns'] =
 		Array(cols).fill(0).map(_ => 'auto').join(' ')
-	
+
 	// Rows are read backwards to match the drawing coordinate system
 	for (let i = 0; i < rows; i++) {
 		for (let j = 0; j < cols; j++) {
 			const cell = document.createElement('div')
 			const coordinates = { x: i, y: j }
-			loadSvgForCell(cell, coordinates)
+			await loadSvgForCell(cell, coordinates)
 			
 			$('#triangle-grid').appendChild(cell)
 		}
@@ -152,14 +225,18 @@ const makeTriangleGrid = () => {
 const changeNumRows = ({ target }) => {
 	if (target.value < 1) target.value = 1
 
-	const rows = target.value
-	const cols = $('#cols-input').value
+	const rows = Number.parseInt(target.value)
+	const cols = Number.parseInt($('#cols-input').value)
 
-	while (positionGrid.length > rows)
+	while (positionGrid.length > rows) {
 		positionGrid.splice(-1)
+		magnetizationGrid.splice(-1)
+	}
 
-	while (positionGrid.length < rows)
+	while (positionGrid.length < rows) {
 		positionGrid.push(Array(cols).fill(0))
+		magnetizationGrid.push(Array(cols).fill({a: Magnetization.NONE, b: Magnetization.NONE, c: Magnetization.NONE}))
+	}
 
 	makeTriangleGrid()
 }
@@ -167,14 +244,17 @@ const changeNumRows = ({ target }) => {
 const changeNumCols = ({ target }) => {
 	if (target.value < 1) target.value = 1
 
-	const rows = $('#rows-input').value
-	const cols = target.value
+	const cols = Number.parseInt(target.value)
 
-	while (positionGrid[0].length > cols)
+	while (positionGrid[0].length > cols) {
 		positionGrid.forEach(row => row.splice(-1))
+		magnetizationGrid.forEach(row => row.splice(-1))
+	}
 
-	while (positionGrid[0].length < cols)
+	while (positionGrid[0].length < cols) {
 		positionGrid.forEach(row => row.push(0))
+		magnetizationGrid.forEach(row => row.push({a: Magnetization.NONE, b: Magnetization.NONE, c: Magnetization.NONE}))
+	}
 
 	makeTriangleGrid()
 }
@@ -347,12 +427,8 @@ const downloadNmeshFile = (e) => {
 }
 
 $('#show-controls-button').onclick = toggleControls
-$('#rows-input').onclick = changeNumRows
-$('#rows-input').onblur = changeNumRows
-$('#rows-input').onkeypress = (e) => e.key == 'Enter' ? changeNumRows(e) : e
-$('#cols-input').onclick = changeNumCols
-$('#cols-input').onblur = changeNumCols
-$('#cols-input').onkeypress = (e) => e.key == 'Enter' ? changeNumCols(e) : e
+$('#rows-input').addEventListener('change', changeNumRows)
+$('#cols-input').addEventListener('change', changeNumCols)
 $('#download-nmesh-file').onclick = downloadNmeshFile
 $('#run-simulation').onclick = runSimulation
 
@@ -361,11 +437,7 @@ $('#run-simulation').onclick = runSimulation
 $('#rows-input').value = 3
 $('#cols-input').value = 3
 
-makeTriangleGrid([
-	[0, 1, 0],
-	[0, 1, 0],
-	[1, 0, 1],
-])
+makeTriangleGrid()
 
 // Limit rendering calls to improve efficiency
 

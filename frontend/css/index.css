@@ -76,7 +76,8 @@ input:focus {
 	padding: 20px;
 	background: var(--white);
 	border-radius: 5px;
-	height: 300px;
+	height: 320px;
+	overflow: auto;
 }
 
 #triangle-grid #magnetized-triangle-svg {
@@ -84,6 +85,7 @@ input:focus {
 	border: 1px solid var(--gray);
 	border-radius: 5px;
 	box-shadow: 1px 1px 1px var(--gray);
+	padding: 4px;
 }
 
 #magnetized-triangle-svg .visible {
