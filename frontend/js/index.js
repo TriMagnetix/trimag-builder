@@ -14,9 +14,9 @@ const scene = new Scene()
 	.project(2, $('canvas').width / $('canvas').height)
 
 const positionGrid = [
-	[true, false, true],
+	[false, false, false],
 	[false, true, false],
-	[false, true, false]
+	[false, false, false]
 ]
 
 /**
@@ -71,6 +71,7 @@ let tetrahedrons = []
 const renderMesh = async () => {
 	const componentModel = await (await fetch('res/triangle.json')).json()
 	tetrahedrons = arrangeModel(positionGrid.toReversed(), componentModel)
+	console.log(tetrahedrons)
 	centerScene(scene, tetrahedrons)
 	drawModel(scene, tetrahedrons)
 }

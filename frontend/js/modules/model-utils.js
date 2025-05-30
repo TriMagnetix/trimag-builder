@@ -97,6 +97,69 @@ export const createTetrahedrons = points => {
 	return tetrahedrons
 }
 
+/**
+ * Rotates a 3D point around a specified center point on the XY plane.
+ * The Z coordinate remains unchanged.
+ *
+ * @param {object} point - The point to rotate, e.g., {x: 1, y: 2, z: 3}.
+ * @param {object} center - The center of rotation, e.g., {x: 0, y: 0, z: 0}.
+ * @param {number} angleDegrees - The rotation angle in degrees.
+ * Positive values mean counter-clockwise.
+ * Negative values mean clockwise.
+ * @returns {object} The rotated point.
+ */
+function rotatePointXY(point, center, angleDegrees) {
+    const angleRadians = angleDegrees * Math.PI / 180; // Convert degrees to radians
+    const cosTheta = Math.cos(angleRadians); // Handles positive and negative angles correctly
+    const sinTheta = Math.sin(angleRadians); // Handles positive and negative angles correctly
+
+    // 1. Translate the point so the center of rotation is at the origin
+    const translatedX = point.x - center.x;
+    const translatedY = point.y - center.y;
+
+    // 2. Apply the 2D rotation on the XY plane
+    const rotatedTranslatedX = translatedX * cosTheta - translatedY * sinTheta;
+    const rotatedTranslatedY = translatedX * sinTheta + translatedY * cosTheta;
+
+    // 3. Translate the point back
+    const rotatedX = rotatedTranslatedX + center.x;
+    const rotatedY = rotatedTranslatedY + center.y;
+    const rotatedZ = point.z; // Z coordinate remains unchanged
+
+    return { x: rotatedX, y: rotatedY, z: rotatedZ };
+}
+
+const getMagField = (bounds) => {
+	const halfWidthOfArm = .001362;
+	const halfDepthOfArm = .0005
+	const minY = bounds.min.y;
+	const center = {x: 0, y: minY, z: 0}
+	const squareCoordinates = [
+		{
+			x: -halfWidthOfArm,
+			y: minY,
+			z: -halfDepthOfArm,
+		},
+		{
+			x: -halfWidthOfArm,
+			y: minY,
+			z: halfDepthOfArm,
+		},
+		{
+			x: halfWidthOfArm,
+			y: minY,
+			z: halfDepthOfArm,
+		},
+		{
+			x: halfWidthOfArm,
+			y: minY,
+			z: -halfDepthOfArm,
+		},
+	]
+	console.log(squareCoordinates.map(squareCoordinate => rotatePointXY(squareCoordinate, {x:0, y:0, z:0}, 150)))
+	return squareCoordinates
+}
+
 export const arrangeModel = (positionGrid, componentModel, padding) => {
 	const bounds = componentModel.flat().reduce((acc, point) => ({
 		min: {
@@ -109,7 +172,7 @@ export const arrangeModel = (positionGrid, componentModel, padding) => {
 		}
 	}), {min: {x: 0, y: 0}, max: {x: 0, y: 0}})
 	padding = {x: 0.01, y: 0} // TODO: don't override padding once width and height is included in the component model
-
+	console.log(getMagField(bounds))
 	// TODO: include the pivot, width, and height within the component model
 	const pivot = {x: 0, y: 1 / 3.093}
 	const width = (bounds.max.x - bounds.min.x) * (1 + padding.x)
