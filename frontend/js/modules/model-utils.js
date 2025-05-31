@@ -97,6 +97,16 @@ export const createTetrahedrons = points => {
 	return tetrahedrons
 }
 
+// .00155, I counted about 8 traingle sides from the tip to almost the middle
+const rectPrismExtrusionLength = 0.0008617 * 8;
+
+const extrudeSquare = (square, extrusionLength) => {
+	return square.map((point) => {
+		console.log(point.y, extrusionLength)
+		return {...point, y: point.y + extrusionLength}
+	})
+}
+
 /**
  * Rotates a 3D point around a specified center point on the XY plane.
  * The Z coordinate remains unchanged.
@@ -133,7 +143,6 @@ const getMagField = (bounds) => {
 	const halfWidthOfArm = .001362;
 	const halfDepthOfArm = .0005
 	const minY = bounds.min.y;
-	const center = {x: 0, y: minY, z: 0}
 	const squareCoordinates = [
 		{
 			x: -halfWidthOfArm,
@@ -156,7 +165,15 @@ const getMagField = (bounds) => {
 			z: -halfDepthOfArm,
 		},
 	]
-	console.log(squareCoordinates.map(squareCoordinate => rotatePointXY(squareCoordinate, {x:0, y:0, z:0}, 150)))
+	const center = {x: 0, y: 0, z: 0}
+	console.log('square', squareCoordinates)
+	console.log('extrude square', extrudeSquare(squareCoordinates, rectPrismExtrusionLength))
+	console.log('rotated square cc', squareCoordinates.map(
+		squareCoordinate => rotatePointXY(squareCoordinate, center, 150)
+	))
+	console.log('rotated square c',squareCoordinates.map(
+		squareCoordinate => rotatePointXY(squareCoordinate, center, -150)
+	))
 	return squareCoordinates
 }
 
