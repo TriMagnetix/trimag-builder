@@ -35,12 +35,12 @@ const Magnetization = {
 
 /** 
  * @typedef {Object} TriangleMagnetization
- * @property {MagnetizationState} a - The magnetization state of the topmost vertex in a triangle. 
- * This can be also be the top left vertex for a flipped triangle
- * @property {MagnetizationState} b - The magnetization state of the bottom right vertex in a triangle. 
- * This can be also be the top right vertex for a flipped triangle.
- * @property {MagnetizationState} c - The magnetization state of the bottom left vertex in a triangle. 
- * This can be also be the bottom vertex for a flipped triangle.
+ * @property {MagnetizationState} a - The magnetization state of the top left vertex in a triangle. 
+ * This can be also be the top for a flipped triangle
+ * @property {MagnetizationState} b - The magnetization state of the top right vertex in a triangle. 
+ * This can be also be the bottom right vertex for a flipped triangle.
+ * @property {MagnetizationState} c - The magnetization state of the bottom vertex in a triangle. 
+ * This can be also be the for a bottom left vertex flipped triangle.
  */
 
 /**
@@ -68,10 +68,24 @@ const magnetizationGrid = Array.from({ length: positionGrid.length }, () =>
 */
 let tetrahedrons = []
 
+/** 
+ * @typedef {Object} MagnetizationBlock
+ * @property {MagnetizationState} magnetization - The magnetization state of the inner parts of this rectangular cuboid
+ * @property {Array<Array<Point>>} coordinates - Array of length 2 representing 2 faces of the rectangular 
+ * cuboid, each inner array holds 4 points for each vertex 
+*/
+
+/** 
+ * @type {Array<MagnetizationBlock>} 
+ * An array 2 rectangles representing a field of magnetization 
+*/
+let magnetizationBlocks = [];
+
 const renderMesh = async () => {
+	const padding = { x: 0.01, y: 0.06 };
 	const componentModel = await (await fetch('res/triangle.json')).json()
-	tetrahedrons = arrangeModel(positionGrid.toReversed(), componentModel)
-	console.log(tetrahedrons)
+	const result = arrangeModel(positionGrid.toReversed(), magnetizationGrid.toReversed(), componentModel, padding)
+	tetrahedrons = result.tetrahedrons
 	centerScene(scene, tetrahedrons)
 	drawModel(scene, tetrahedrons)
 }

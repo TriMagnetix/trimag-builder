@@ -52,25 +52,25 @@
          class="visible"
          id="triangle"/>
       <circle
-         fill="#f07777"
+         fill="#8792e5"
          class="magnetization-vertex visible"
          id="magnetization-vertex-a"
+         cx="50"
+         cy="81.602539"
+         r="5" />
+      <circle
+         fill="#f07777"
+         class="magnetization-vertex visible"
+         id="magnetization-vertex-b"
          cx="94.999756"
          cy="5"
          r="5" />
       <circle
          fill="#f07777"
          class="magnetization-vertex visible"
-         id="magnetization-vertex-b"
+         id="magnetization-vertex-c"
          cx="5"
          cy="5"
-         r="5" />
-      <circle
-         fill="#8792e5"
-         class="magnetization-vertex visible"
-         id="magnetization-vertex-c"
-         cx="50"
-         cy="81.602539"
          r="5" />
     </g>
   </g>
