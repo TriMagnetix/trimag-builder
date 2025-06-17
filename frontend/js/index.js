@@ -82,12 +82,13 @@ let tetrahedrons = []
 let magnetizationBlocks = [];
 
 const renderMesh = async () => {
-	const padding = { x: 0.01, y: 0.06 };
+	const padding = { x: 0, y: 0 };
 	const componentModel = await (await fetch('res/triangle.json')).json()
 	const result = arrangeModel(positionGrid.toReversed(), magnetizationGrid.toReversed(), componentModel, padding)
 	tetrahedrons = result.tetrahedrons
-	centerScene(scene, tetrahedrons)
-	drawModel(scene, tetrahedrons)
+	magnetizationBlocks = result.magnetizationBlocks
+	centerScene(scene, tetrahedrons, magnetizationBlocks)
+	drawModel(scene, tetrahedrons, magnetizationBlocks)
 }
 
 // Triangle grid controls
@@ -495,7 +496,7 @@ $('main').onmousemove = e => {
 		0,
 	)
 
-	drawModel(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons, magnetizationBlocks)
 }
 
 // Mouse-wheel to scale
@@ -504,7 +505,7 @@ $('main').onwheel = e => {
 
 	scene.clear()
 	scene.scale(e.deltaY > 0 ? 1.15 : 0.85)
-	drawModel(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons, magnetizationBlocks)
 }
 
 // Resize canvas when it's containers size changes
@@ -517,5 +518,5 @@ setInterval(() => {
 	scene
 		.resizeCanvas($('main').clientWidth, $('main').clientHeight)
 		.project(2, $('canvas').width / $('canvas').height)
-	drawModel(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons, magnetizationBlocks)
 }, 100)

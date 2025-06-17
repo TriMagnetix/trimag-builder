@@ -97,9 +97,6 @@ export const createTetrahedrons = points => {
 	return tetrahedrons
 }
 
-// .00155, I counted about 8 traingle sides from the tip to almost the middle
-const rectCuboidExtrusionLength = 0.0008617 * 8;
-
 const extrudeSquare = (square, extrusionLength) => {
 	return square.map((point) => {
 		return {...point, y: point.y + extrusionLength}
@@ -184,7 +181,7 @@ const Magnetization = {
  * @returns {Array<MagneticField>}
  */
 const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthOffset, heightOffset) => {
-	const halfWidthOfArm = .001362;
+	const halfWidthOfArm = .001362 * 2
 	const halfDepthOfArm = .0005
 	/** @type {number} */
 	const minY = bounds.min.y;
@@ -211,8 +208,8 @@ const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthO
 			z: -halfDepthOfArm,
 		},
 	]
-	const center = {x: 0, y: 0, z: 0}
-	let regtangularCuboidPointA = [squareCoordinates, extrudeSquare(squareCoordinates, rectCuboidExtrusionLength)]
+	const center = {x: (bounds.min.x + bounds.max.x) / 2, y: (bounds.min.y + bounds.max.y) / 2, z: 0}
+	let regtangularCuboidPointA = [squareCoordinates, extrudeSquare(squareCoordinates, center.y - minY)]
 	// flip if we are in an even row since the triangle is the other side up 
 	if(isEvenRow) {
 		regtangularCuboidPointA = regtangularCuboidPointA.map((square) => {
@@ -304,7 +301,68 @@ export const arrangeModel = (positionGrid, magnetizationGrid, componentModel, pa
 	return {tetrahedrons, magnetizationBlocks}
 }
 
-export const drawModel = (scene, tetrahedrons) => {
+/**
+ * Checks if a point is inside a prism using vector projection.
+ * Works for any orientation (rotated or axis-aligned).
+ * @param {object} point - The point to check, e.g., {x: 0.027, y: 0.020, z: 0.0}.
+ * @param {object} cuboid - The cuboid object from your data structure.
+ * @returns {boolean} - True if the point is inside, false otherwise.
+ */
+const isPointInsidePrism = (point, cuboid) => {
+	/**
+	 * Subtracts one vector from another (v1 - v2).
+	 * @param {object} v1 - The first vector, e.g., {x: 1, y: 2, z: 3}.
+	 * @param {object} v2 - The second vector to subtract, e.g., {x: 4, y: 5, z: 6}.
+	 * @returns {object} A new vector representing the result of the subtraction.
+	*/
+	function subtract(v1, v2) {
+		return {
+			x: v1.x - v2.x,
+			y: v1.y - v2.y,
+			z: v1.z - v2.z
+		};
+	}
+	/**
+	 * Calculates the dot product of two vectors.
+	 * @param {object} v1 - The first vector, e.g., {x: 1, y: 2, z: 3}.
+	 * @param {object} v2 - The second vector, e.g., {x: 4, y: 5, z: 6}.
+	 * @returns {number} The dot product (a scalar).
+	 */
+	function dot(v1, v2) {
+		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	}
+
+	const rect1 = cuboid.points[0];
+	const rect2 = cuboid.points[1];
+
+	// 1. Define the prism's local coordinate system from one corner.
+	const p0 = rect1[0]; // Origin corner
+
+	// Vector for the width (along X in your data)
+	const u = subtract(rect1[3], p0);
+
+	// Vector for the height (along Y in your data)
+	const v = subtract(rect2[0], p0);
+
+	// Vector for the length (along Z in your data)
+	const w = subtract(rect1[1], p0);
+
+	// 2. Create a vector from the prism origin to the point to check.
+	const toPoint = subtract(point, p0);
+
+	// 3. Project the point's vector onto the prism's axes and check bounds.
+	const proj_u = dot(toPoint, u) / dot(u, u);
+	const proj_v = dot(toPoint, v) / dot(v, v);
+	const proj_w = dot(toPoint, w) / dot(w, w);
+
+	return (
+		proj_u >= 0 && proj_u <= 1 &&
+		proj_v >= 0 && proj_v <= 1 &&
+		proj_w >= 0 && proj_w <= 1
+	);
+}
+
+export const drawModel = (scene, tetrahedrons, magnetizationBlocks) => {
 	let colors, positions
 
 	// Only render triangles that are on the surface
@@ -325,18 +383,33 @@ export const drawModel = (scene, tetrahedrons) => {
 			p2.x, p2.y, p2.z,
 			p3.x, p3.y, p3.z,
 		])
-
+	
+	console.log("magnetizationBlocks", magnetizationBlocks)
+	
 	colors = Array(positions.length / 3).fill(0)
 		.flatMap((_, i) => {
 			const green = [0, 0.5, 0, 1]
 			const limeGreen = [0.195, 0.801, 0.195, 1]
 			const darkGreen = [0, 0.2, 0, 1]
 			const lightGreen = [0, 1, 0, 1]
+			const magBlue = [0.5294117647058824, 0.5725490196078431, 0.8980392156862745, 1]
+			const magRed = [0.9411764705882353, 0.4666666666666667, 0.4666666666666667, 1]
+
+			const currPoint = {x: positions[i*3], y: positions[i*3+1], z: positions[i*3+2]}
+			for (const magBlock of magnetizationBlocks) {
+				if(isPointInsidePrism(currPoint, magBlock)) {
+					if(magBlock.magentization === Magnetization.NEGATIVE) {
+						return magBlue
+					} else if (magBlock.magentization === Magnetization.POSITIVE) {
+						return magRed;
+					}
+					break;
+				}
+			}
 
 			return lightGreen
-			//return i % 3 == i % 6 ? green : lightGreen
 		})
-
+	
 	scene.drawTriangles(positions, colors)
 
 	// Render Outlines
@@ -357,7 +430,7 @@ export const drawModel = (scene, tetrahedrons) => {
 	scene.drawLines(positions, colors)
 }
 
-export const centerScene = (scene, tetrahedrons) => {
+export const centerScene = (scene, tetrahedrons, magnetizationBlocks) => {
 	const Xs = new Set(tetrahedrons.flatMap(t => t.map(p => p.x)))
 	const Ys = new Set(tetrahedrons.flatMap(t => t.map(p => p.y)))
 	const Zs = new Set(tetrahedrons.flatMap(t => t.map(p => p.z)))
@@ -376,5 +449,5 @@ export const centerScene = (scene, tetrahedrons) => {
 		.rotate(0.01, 0.01, 0) // outlines are invisible if viewed perfectly from the front
 		.clear()
 
-	drawModel(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons, magnetizationBlocks)
 }
