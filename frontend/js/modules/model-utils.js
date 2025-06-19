@@ -181,10 +181,14 @@ const Magnetization = {
  * @returns {Array<MagneticField>}
  */
 const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthOffset, heightOffset) => {
+	if(triangleMagnetization.a === Magnetization.NONE && triangleMagnetization.b === Magnetization.NONE && triangleMagnetization.c === Magnetization.NONE) {
+		return []
+	}
 	const halfWidthOfArm = .001362 * 2
 	const halfDepthOfArm = .0005
 	/** @type {number} */
 	const minY = bounds.min.y;
+	const maxY = bounds.max.y;
 	// This is the 'a' vertex of the triangle, for b and c we will simply rotate the points since it will be easier
 	const squareCoordinates = [
 		{
@@ -208,13 +212,23 @@ const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthO
 			z: -halfDepthOfArm,
 		},
 	]
-	const center = {x: (bounds.min.x + bounds.max.x) / 2, y: (bounds.min.y + bounds.max.y) / 2, z: 0}
-	let regtangularCuboidPointA = [squareCoordinates, extrudeSquare(squareCoordinates, center.y - minY)]
+	/* The x coordinate is just the middle because we have 1 arm in middle, and 1 on both side. 
+	But y is different because we have one a the min and 2 at the max so it's like determing the center of an isosceles triangle */
+	let centerY;
+	if (isEvenRow) {
+		centerY = (2 * minY + maxY) / 3;
+	} else {
+		centerY = (minY + 2 * maxY) / 3;
+	}
+	const center = {x: (bounds.min.x + bounds.max.x) / 2, y: centerY, z: 0}
+	 
 	// flip if we are in an even row since the triangle is the other side up 
+	let regtangularCuboidPointA;
 	if(isEvenRow) {
-		regtangularCuboidPointA = regtangularCuboidPointA.map((square) => {
-			return square.map((point) => rotatePointXY(point, center, 180))
-		})
+		const rotatedSquareCoordinates = squareCoordinates.map((point) => rotatePointXY(point, {x: (bounds.min.x + bounds.max.x) / 2, y: (bounds.min.y + bounds.max.y) / 2, z: 0}, 180))
+		regtangularCuboidPointA = [rotatedSquareCoordinates, extrudeSquare(rotatedSquareCoordinates, center.y - maxY)]
+	} else {
+		regtangularCuboidPointA = [squareCoordinates, extrudeSquare(squareCoordinates, center.y - minY)]
 	}
 
 	/** @type Array<MagneticField> */
@@ -228,7 +242,7 @@ const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthO
 	}
 	if (triangleMagnetization.b !== Magnetization.NONE) {
 		const regtangularCuboidPointB = regtangularCuboidPointA.map((square) => {
-			return square.map((point) => rotatePointXY(point, center, -150))
+			return square.map((point) => rotatePointXY(point, center, -120))
 		})
 		magnetizationFields.push({
 			magentization: triangleMagnetization.b,
@@ -237,7 +251,7 @@ const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthO
 	}
 	if (triangleMagnetization.c !== Magnetization.NONE) {
 		const regtangularCuboidPointC = regtangularCuboidPointA.map((square) => {
-			return square.map((point) => rotatePointXY(point, center, 150))
+			return square.map((point) => rotatePointXY(point, center, 120))
 		})
 		magnetizationFields.push({
 			magentization: triangleMagnetization.c,
@@ -383,9 +397,7 @@ export const drawModel = (scene, tetrahedrons, magnetizationBlocks) => {
 			p2.x, p2.y, p2.z,
 			p3.x, p3.y, p3.z,
 		])
-	
-	console.log("magnetizationBlocks", magnetizationBlocks)
-	
+		
 	colors = Array(positions.length / 3).fill(0)
 		.flatMap((_, i) => {
 			const green = [0, 0.5, 0, 1]
