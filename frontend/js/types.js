@@ -3,4 +3,3 @@ export const Magnetization = {
     NEGATIVE: 'negative',
     NONE: 'none',
 };
-  
