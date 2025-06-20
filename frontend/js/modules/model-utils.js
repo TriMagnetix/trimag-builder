@@ -1,18 +1,9 @@
-// TODO: fix this so that exterior is not always true
-export const extrudePoints = (points, layers) => Array(layers).fill(0)
-	.map((_, z) => points
-		.map((row, y) => row
-			.map((p, x) => ({
-				...p,
-				z,
-				exterior:
-					!points[0][x - 1]?.[y]
-					|| !points[0][x + 1]?.[y]
-					|| !points[0][x]?.[y - 1]
-					|| !points[0][x]?.[y + 1],
-			}))
-		)
-	)
+import { Magnetization } from '../types.js'
+/**
+ * Top level import from types .d.ts file so we 
+ * don't need to import every type individually
+ * @typedef {import('../types').Types} Types
+ */
 
 export const createTetrahedrons = points => {
 	const maxDist = 1
@@ -97,96 +88,63 @@ export const createTetrahedrons = points => {
 	return tetrahedrons
 }
 
+/**
+ * Extrudes a 2D square (represented by 4 points) along the Y-axis.
+ * This effectively "lifts" the square by adding a specified length to each point's Y-coordinate.
+ *
+ * @param {Array<Types['Point']>} square - An array of four points representing the vertices of the square.
+ * @param {number} extrusionLength - The distance by which to extrude the square along the Y-axis.
+ * @returns {Array<Types['Point']>} A new array of four points, with their Y-coordinates increased by `extrusionLength`.
+ */
 const extrudeSquare = (square, extrusionLength) => {
-	return square.map((point) => {
-		return {...point, y: point.y + extrusionLength}
-	})
-}
+    return square.map((point) => {
+        return {...point, y: point.y + extrusionLength}
+    });
+};
 
 /**
  * Rotates a 3D point around a specified center point on the XY plane.
  * The Z coordinate remains unchanged.
  *
- * @param {object} point - The point to rotate, e.g., {x: 1, y: 2, z: 3}.
- * @param {object} center - The center of rotation, e.g., {x: 0, y: 0, z: 0}.
+ * @param {Types['Point']} point - The point to rotate
+ * @param {Types['Point']} center - The center of rotation
  * @param {number} angleDegrees - The rotation angle in degrees.
  * Positive values mean counter-clockwise.
  * Negative values mean clockwise.
- * @returns {object} The rotated point.
+ * @returns {Types['Point']} The rotated point.
  */
 const rotatePointXY = (point, center, angleDegrees) => {
-    const angleRadians = angleDegrees * Math.PI / 180; // Convert degrees to radians
-    const cosTheta = Math.cos(angleRadians); // Handles positive and negative angles correctly
-    const sinTheta = Math.sin(angleRadians); // Handles positive and negative angles correctly
+    const angleRadians = angleDegrees * Math.PI / 180 // Convert degrees to radians
+    const cosTheta = Math.cos(angleRadians)
+    const sinTheta = Math.sin(angleRadians)
 
-    // 1. Translate the point so the center of rotation is at the origin
-    const translatedX = point.x - center.x;
-    const translatedY = point.y - center.y;
+    // Translate the point so the center of rotation is at the origin
+    const translatedX = point.x - center.x
+    const translatedY = point.y - center.y
 
-    // 2. Apply the 2D rotation on the XY plane
-    const rotatedTranslatedX = translatedX * cosTheta - translatedY * sinTheta;
-    const rotatedTranslatedY = translatedX * sinTheta + translatedY * cosTheta;
+    // Apply the 2D rotation on the XY plane
+    const rotatedTranslatedX = translatedX * cosTheta - translatedY * sinTheta
+    const rotatedTranslatedY = translatedX * sinTheta + translatedY * cosTheta
 
-    // 3. Translate the point back
-    const rotatedX = rotatedTranslatedX + center.x;
-    const rotatedY = rotatedTranslatedY + center.y;
-    const rotatedZ = point.z; // Z coordinate remains unchanged
+    // Translate the point back
+    const rotatedX = rotatedTranslatedX + center.x
+    const rotatedY = rotatedTranslatedY + center.y
+    const rotatedZ = point.z
 
-    return { x: rotatedX, y: rotatedY, z: rotatedZ };
+    return { x: rotatedX, y: rotatedY, z: rotatedZ }
 }
 
 /**
- * Represents the possible states of magnetization.
- * @enum {MagnetizationState}
- */
-const Magnetization = {
-  POSITIVE: 'positive',
-  NEGATIVE: 'negative',
-  NONE: 'none',
-};
-
-/**
- * @typedef {('positive'|'negative'|'none')} MagnetizationState
- */
-
-/**
- * @typedef {Object} Point
- * @property {boolean} exterior - If this point is visible when rendering.
- * @property {number} x - The x coordinate of the point.
- * @property {number} y - The y coordinate of the point.
- * @property {number} z - The z coordinate of the point.
- */
-
-/**
- * @typedef {Object} MagneticField
- * @property {Array<Point>} points - 
- * Array of length 8 containing all the points of the rectangular cuboid field
- * @property {MagnetizationState} magentization - Negative or positive magnetization
- */
-
-/** 
- * @typedef {Object} TriangleMagnetization
- * @property {MagnetizationState} a - The magnetization state of the top left vertex in a triangle. 
- * This can be also be the top for a flipped triangle
- * @property {MagnetizationState} b - The magnetization state of the top right vertex in a triangle. 
- * This can be also be the bottom right vertex for a flipped triangle.
- * @property {MagnetizationState} c - The magnetization state of the bottom vertex in a triangle. 
- * This can be also be the for a bottom left vertex flipped triangle.
- */
-
-/**
- * Given a triangle magnetization points and offsets calculat the magnetic field around each point. 
+ * Given a triangle magnetization points and offsets, calculates the magnetic field around each point. 
  * This will be a rectangular cuboid so it will contain 8 points and a magnetization.
- * @param {TriangleMagnetization} triangleMagnetization
- * @returns {Array<MagneticField>}
+ * @param {Types['TriangleMagnetization']} triangleMagnetization
+ * @returns {Array<Types['MagneticField']>}
  */
 const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthOffset, heightOffset) => {
 	if(triangleMagnetization.a === Magnetization.NONE && triangleMagnetization.b === Magnetization.NONE && triangleMagnetization.c === Magnetization.NONE) {
 		return []
 	}
 	const halfWidthOfArm = .001362 * 2
-	const halfDepthOfArm = .0005
-	/** @type {number} */
 	const minY = bounds.min.y;
 	const maxY = bounds.max.y;
 	// This is the 'a' vertex of the triangle, for b and c we will simply rotate the points since it will be easier
@@ -194,22 +152,22 @@ const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthO
 		{
 			x: -halfWidthOfArm,
 			y: minY,
-			z: -halfDepthOfArm,
+			z: bounds.min.z,
 		},
 		{
 			x: -halfWidthOfArm,
 			y: minY,
-			z: halfDepthOfArm,
+			z: bounds.max.z,
 		},
 		{
 			x: halfWidthOfArm,
 			y: minY,
-			z: halfDepthOfArm,
+			z: bounds.max.z,
 		},
 		{
 			x: halfWidthOfArm,
 			y: minY,
-			z: -halfDepthOfArm,
+			z: bounds.min.z,
 		},
 	]
 	/* The x coordinate is just the middle because we have 1 arm in middle, and 1 on both side. 
@@ -226,17 +184,17 @@ const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthO
 	let regtangularCuboidPointA;
 	if(isEvenRow) {
 		const rotatedSquareCoordinates = squareCoordinates.map((point) => rotatePointXY(point, {x: (bounds.min.x + bounds.max.x) / 2, y: (bounds.min.y + bounds.max.y) / 2, z: 0}, 180))
-		regtangularCuboidPointA = [rotatedSquareCoordinates, extrudeSquare(rotatedSquareCoordinates, center.y - maxY)]
+		regtangularCuboidPointA = [rotatedSquareCoordinates, extrudeSquare(rotatedSquareCoordinates, (center.y - maxY) * 3 / 4)]
 	} else {
-		regtangularCuboidPointA = [squareCoordinates, extrudeSquare(squareCoordinates, center.y - minY)]
+		regtangularCuboidPointA = [squareCoordinates, extrudeSquare(squareCoordinates, (center.y - minY) * 3 / 4)]
 	}
 
-	/** @type Array<MagneticField> */
+	/** @type Array<Types['MagneticField']> */
 	const magnetizationFields = [];
 	if (triangleMagnetization.a !== Magnetization.NONE) {
-		// offset each point and add magentization to object and add to array
+		// offset each point and add magnetization to object and add to array
 		magnetizationFields.push({
-			magentization: triangleMagnetization.a,
+			magnetization: triangleMagnetization.a,
 			points: regtangularCuboidPointA.map((square) => square.map((point) => ({...point, x: point.x + widthOffset, y: point.y + heightOffset}))),
 		})
 	}
@@ -245,7 +203,7 @@ const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthO
 			return square.map((point) => rotatePointXY(point, center, -120))
 		})
 		magnetizationFields.push({
-			magentization: triangleMagnetization.b,
+			magnetization: triangleMagnetization.b,
 			points: regtangularCuboidPointB.map((square) => square.map((point) => ({...point, x: point.x + widthOffset, y: point.y + heightOffset}))),
 		})
 	}
@@ -254,7 +212,7 @@ const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthO
 			return square.map((point) => rotatePointXY(point, center, 120))
 		})
 		magnetizationFields.push({
-			magentization: triangleMagnetization.c,
+			magnetization: triangleMagnetization.c,
 			points: regtangularCuboidPointC.map((square) => square.map((point) => ({...point, x: point.x + widthOffset, y: point.y + heightOffset}))),
 		})
 	}
@@ -266,18 +224,20 @@ export const arrangeModel = (positionGrid, magnetizationGrid, componentModel, pa
 		min: {
 			x: point.x < acc.min.x ? point.x : acc.min.x,
 			y: point.y < acc.min.y ? point.y : acc.min.y,
+			z: point.z < acc.min.z ? point.z : acc.min.z,
 		},
 		max: {
 			x: point.x > acc.max.x ? point.x : acc.max.x,
 			y: point.y > acc.max.y ? point.y : acc.max.y,
+			z: point.z > acc.min.z ? point.z : acc.min.z,
 		}
-	}), {min: {x: 0, y: 0}, max: {x: 0, y: 0}})
+	}), {min: {x: 0, y: 0, z: 0}, max: {x: 0, y: 0, z: 0}})
 	// TODO: include the pivot, width, and height within the component model
 	const pivot = {x: 0, y: 1 / 3.093}
 	const width = (bounds.max.x - bounds.min.x) * (1 + padding.x)
 	const height = (bounds.max.y - bounds.min.y) * (1 + padding.y)
 
-	const offset = {x: width * pivot.x, y: height * pivot.y}
+	const offset = {x: width * pivot.x, y: height * pivot.y, z: 0}
 
 	const flipModelIfNeeded = (componentModel, i) => i % 2 == 1
 		? componentModel.map(tetrahedron =>
@@ -410,9 +370,9 @@ export const drawModel = (scene, tetrahedrons, magnetizationBlocks) => {
 			const currPoint = {x: positions[i*3], y: positions[i*3+1], z: positions[i*3+2]}
 			for (const magBlock of magnetizationBlocks) {
 				if(isPointInsidePrism(currPoint, magBlock)) {
-					if(magBlock.magentization === Magnetization.NEGATIVE) {
+					if(magBlock.magnetization === Magnetization.NEGATIVE) {
 						return magBlue
-					} else if (magBlock.magentization === Magnetization.POSITIVE) {
+					} else if (magBlock.magnetization === Magnetization.POSITIVE) {
 						return magRed;
 					}
 					break;
