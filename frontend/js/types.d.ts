@@ -1,7 +1,7 @@
 /**
  * Represents the possible states of magnetization.
  */
-export enum Magnetization {
+enum Magnetization {
   POSITIVE = 'positive',
   NEGATIVE = 'negative',
   NONE = 'none',
@@ -16,7 +16,7 @@ export enum Magnetization {
  * @property c - The magnetization state of the bottom vertex in a triangle.
  * This can be also be the for a bottom left vertex flipped triangle.
  */
-export interface TriangleMagnetization {
+interface TriangleMagnetization {
   a: Magnetization; 
   b: Magnetization;
   c: Magnetization;
@@ -29,22 +29,11 @@ export interface TriangleMagnetization {
  * @property y - The y coordinate of the point.
  * @property z - The z coordinate of the point.
  */
-export interface Point {
+interface Point {
   exterior?: boolean;
   x: number;
   y: number;
   z: number;
-}
-
-/**
- * @interface MagnetizationBlock
- * @property magnetization - The magnetization state of the inner parts of this rectangular cuboid
- * @property coordinates - Array of length 2 representing 2 faces of the rectangular
- * cuboid, each inner array holds 4 points for each vertex
- */
-export interface MagnetizationBlock {
-  magnetization: Magnetization;
-  coordinates: Array<Array<Point>>;
 }
 
 /**
@@ -53,7 +42,7 @@ export interface MagnetizationBlock {
  * Outer array of length 2 and inner arrays of length 4 to represent the bounds of the rectangular cuboid
  * @property magnetization - Negative or positive magnetization
  */
-export interface MagneticField {
+interface MagnetizationField {
   points: Array<Array<Point>>;
   magnetization: Magnetization;
 }
@@ -65,6 +54,6 @@ export interface Types {
   Magnetization: Magnetization;
   TriangleMagnetization: TriangleMagnetization;
   Point: Point;
-  MagnetizationBlock: MagnetizationBlock;
+  MagnetizationField: MagnetizationField;
   MagneticField: MagneticField;
 }

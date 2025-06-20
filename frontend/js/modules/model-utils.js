@@ -140,7 +140,7 @@ const rotatePointXY = (point, center, angleDegrees) => {
  * @param {Types['TriangleMagnetization']} triangleMagnetization
  * @returns {Array<Types['MagneticField']>}
  */
-const getMagnetizationBlocks = (triangleMagnetization, bounds, isEvenRow, widthOffset, heightOffset) => {
+const getMagnetizationFields = (triangleMagnetization, bounds, isEvenRow, widthOffset, heightOffset) => {
 	if(triangleMagnetization.a === Magnetization.NONE && triangleMagnetization.b === Magnetization.NONE && triangleMagnetization.c === Magnetization.NONE) {
 		return []
 	}
@@ -264,15 +264,15 @@ export const arrangeModel = (positionGrid, magnetizationGrid, componentModel, pa
 		)
 	).filter(t => t).flat()
 
-	const magnetizationBlocks = magnetizationGrid.reduce((accumulator, row, i) => {
+	const magnetizationFields = magnetizationGrid.reduce((accumulator, row, i) => {
 		const isEvenRow = i % 2 === 0
 		row.forEach((triangleMagnetization, j) => {
-			accumulator.push(...getMagnetizationBlocks(triangleMagnetization, bounds, isEvenRow, j * width, i * height))
+			accumulator.push(...getMagnetizationFields(triangleMagnetization, bounds, isEvenRow, j * width, i * height))
 		})
 		return accumulator
 	}, [])
 
-	return {tetrahedrons, magnetizationBlocks}
+	return {tetrahedrons, magnetizationFields}
 }
 
 /**
