@@ -59,6 +59,11 @@ interface MagnetizationField {
   magnetization: Magnetization;
 }
 
+interface Bounds {
+  min: Point;
+  max: Point;
+}
+
 /* Create one top level object to export so each type 
 doesn't need to be imported individually in the js files */
 export interface Types {
@@ -68,4 +73,5 @@ export interface Types {
   Point: Point;
   Vector: Vector;
   MagnetizationField: MagnetizationField;
+  Bounds: Bounds;
 }

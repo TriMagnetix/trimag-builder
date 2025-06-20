@@ -131,34 +131,39 @@ const rotatePointXY = (point, center, angleDegrees) => {
  * Given a triangle magnetization points and offsets, calculates the magnetic field around each point. 
  * This will be a rectangular cuboid so it will contain 8 points and a magnetization.
  * @param {Types['TriangleMagnetization']} triangleMagnetization
+ * @param {Types['Bounds']} bounds
+ * @param {{min: number, max: number}} armBounds
+ * @param {boolean} isEvenRow
+ * @param {number} widthOffset
+ * @param {number} heightOffset
  * @returns {Array<Types['MagnetizationField']>}
  */
-const getMagnetizationFields = (triangleMagnetization, bounds, isEvenRow, widthOffset, heightOffset) => {
+const getMagnetizationFields = (triangleMagnetization, bounds, armBounds, isEvenRow, widthOffset, heightOffset) => {
 	if(triangleMagnetization.a === Magnetization.NONE && triangleMagnetization.b === Magnetization.NONE && triangleMagnetization.c === Magnetization.NONE) {
 		return []
 	}
-	const halfWidthOfArm = .001362 * 2
+	const widthOfArm = Math.abs(armBounds.max - armBounds.min)
 	const minY = bounds.min.y;
 	const maxY = bounds.max.y;
 	// This is the 'a' vertex of the triangle, for b and c we will simply rotate the points since it will be easier
 	const squareCoordinates = [
 		{
-			x: -halfWidthOfArm,
+			x: -widthOfArm,
 			y: minY,
 			z: bounds.min.z,
 		},
 		{
-			x: -halfWidthOfArm,
+			x: -widthOfArm,
 			y: minY,
 			z: bounds.max.z,
 		},
 		{
-			x: halfWidthOfArm,
+			x: widthOfArm,
 			y: minY,
 			z: bounds.max.z,
 		},
 		{
-			x: halfWidthOfArm,
+			x: widthOfArm,
 			y: minY,
 			z: bounds.min.z,
 		},
@@ -218,7 +223,20 @@ export const arrangeModel = (positionGrid, magnetizationGrid, componentModel, pa
 			y: point.y > acc.max.y ? point.y : acc.max.y,
 			z: point.z > acc.min.z ? point.z : acc.min.z,
 		}
-	}), {min: {x: 0, y: 0, z: 0}, max: {x: 0, y: 0, z: 0}})
+	}), {min: {x: 0, y: 0, z: 0}, max: {x: 0, y: 0, z: 0}}) 
+	const armBounds = componentModel.flat().reduce((acc, point) => {
+		/* We are trying to find the width of the arm so 
+		take the top arm and only look at the top 10% of 
+		y points to get the min and max of the x. */
+		const bottomBound = bounds.max.y - (Math.abs(bounds.max.y - bounds.min.y) / 10)
+		if(point.y <= bounds.max.y && point.y >= bottomBound) {
+			return {
+				min: point.x < acc.min ? point.x : acc.min,
+				max: point.x > acc.max ? point.x : acc.max,  
+			}
+		}
+		return acc;
+	}, {min: Number.MAX_SAFE_INTEGER, max: Number.MIN_SAFE_INTEGER})
 	// TODO: include the pivot, width, and height within the component model
 	const pivot = {x: 0, y: 1 / 3.093}
 	const width = (bounds.max.x - bounds.min.x) * (1 + padding.x)
@@ -254,7 +272,7 @@ export const arrangeModel = (positionGrid, magnetizationGrid, componentModel, pa
 	const magnetizationFields = magnetizationGrid.reduce((accumulator, row, i) => {
 		const isEvenRow = i % 2 === 0
 		row.forEach((triangleMagnetization, j) => {
-			accumulator.push(...getMagnetizationFields(triangleMagnetization, bounds, isEvenRow, j * width, i * height))
+			accumulator.push(...getMagnetizationFields(triangleMagnetization, bounds, armBounds, isEvenRow, j * width, i * height))
 		})
 		return accumulator
 	}, [])
