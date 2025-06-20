@@ -37,7 +37,19 @@ interface Point {
 }
 
 /**
- * @interface MagneticField
+ * @interface Vector
+ * @property x - Width of the vector
+ * @property y - Height of the vector
+ * @property z - Length of the vector
+ */
+interface Vector {
+  x: number;
+  y: number;
+  z: number;
+}
+
+/**
+ * @interface MagnetizationField
  * @property points -
  * Outer array of length 2 and inner arrays of length 4 to represent the bounds of the rectangular cuboid
  * @property magnetization - Negative or positive magnetization
@@ -54,6 +66,6 @@ export interface Types {
   Magnetization: Magnetization;
   TriangleMagnetization: TriangleMagnetization;
   Point: Point;
+  Vector: Vector;
   MagnetizationField: MagnetizationField;
-  MagneticField: MagneticField;
 }

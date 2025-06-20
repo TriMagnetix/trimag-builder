@@ -117,28 +117,21 @@ const rotatePointXY = (point, center, angleDegrees) => {
     const angleRadians = angleDegrees * Math.PI / 180 // Convert degrees to radians
     const cosTheta = Math.cos(angleRadians)
     const sinTheta = Math.sin(angleRadians)
-
-    // Translate the point so the center of rotation is at the origin
     const translatedX = point.x - center.x
     const translatedY = point.y - center.y
-
-    // Apply the 2D rotation on the XY plane
     const rotatedTranslatedX = translatedX * cosTheta - translatedY * sinTheta
     const rotatedTranslatedY = translatedX * sinTheta + translatedY * cosTheta
-
-    // Translate the point back
     const rotatedX = rotatedTranslatedX + center.x
     const rotatedY = rotatedTranslatedY + center.y
-    const rotatedZ = point.z
 
-    return { x: rotatedX, y: rotatedY, z: rotatedZ }
+    return { x: rotatedX, y: rotatedY, z: point.z }
 }
 
 /**
  * Given a triangle magnetization points and offsets, calculates the magnetic field around each point. 
  * This will be a rectangular cuboid so it will contain 8 points and a magnetization.
  * @param {Types['TriangleMagnetization']} triangleMagnetization
- * @returns {Array<Types['MagneticField']>}
+ * @returns {Array<Types['MagnetizationField']>}
  */
 const getMagnetizationFields = (triangleMagnetization, bounds, isEvenRow, widthOffset, heightOffset) => {
 	if(triangleMagnetization.a === Magnetization.NONE && triangleMagnetization.b === Magnetization.NONE && triangleMagnetization.c === Magnetization.NONE) {
@@ -170,14 +163,8 @@ const getMagnetizationFields = (triangleMagnetization, bounds, isEvenRow, widthO
 			z: bounds.min.z,
 		},
 	]
-	/* The x coordinate is just the middle because we have 1 arm in middle, and 1 on both side. 
-	But y is different because we have one a the min and 2 at the max so it's like determing the center of an isosceles triangle */
-	let centerY;
-	if (isEvenRow) {
-		centerY = (2 * minY + maxY) / 3;
-	} else {
-		centerY = (minY + 2 * maxY) / 3;
-	}
+	// Determine the center, similar to an isosceles triangle
+	const centerY = isEvenRow ?  (2 * minY + maxY) / 3 : (minY + 2 * maxY) / 3
 	const center = {x: (bounds.min.x + bounds.max.x) / 2, y: centerY, z: 0}
 	 
 	// flip if we are in an even row since the triangle is the other side up 
@@ -189,7 +176,7 @@ const getMagnetizationFields = (triangleMagnetization, bounds, isEvenRow, widthO
 		regtangularCuboidPointA = [squareCoordinates, extrudeSquare(squareCoordinates, (center.y - minY) * 3 / 4)]
 	}
 
-	/** @type Array<Types['MagneticField']> */
+	/** @type Array<Types['MagnetizationField']> */
 	const magnetizationFields = [];
 	if (triangleMagnetization.a !== Magnetization.NONE) {
 		// offset each point and add magnetization to object and add to array
@@ -278,61 +265,59 @@ export const arrangeModel = (positionGrid, magnetizationGrid, componentModel, pa
 /**
  * Checks if a point is inside a prism using vector projection.
  * Works for any orientation (rotated or axis-aligned).
- * @param {object} point - The point to check, e.g., {x: 0.027, y: 0.020, z: 0.0}.
- * @param {object} cuboid - The cuboid object from your data structure.
+ * @param {Types['Point']} point - The point to check, e.g., {x: 0.027, y: 0.020, z: 0.0}.
+ * @param {Types['MagnetizationField']} magField - The cuboid object from your data structure.
  * @returns {boolean} - True if the point is inside, false otherwise.
  */
-const isPointInsidePrism = (point, cuboid) => {
+const isPointInsidePrism = (point, magField) => {
 	/**
 	 * Subtracts one vector from another (v1 - v2).
-	 * @param {object} v1 - The first vector, e.g., {x: 1, y: 2, z: 3}.
-	 * @param {object} v2 - The second vector to subtract, e.g., {x: 4, y: 5, z: 6}.
-	 * @returns {object} A new vector representing the result of the subtraction.
+	 * @param {Types['Vector']} v1
+	 * @param {Types['Vector']} v2
+	 * @returns {Types['Vector']}
 	*/
-	function subtract(v1, v2) {
+	const subtract = (v1, v2) => {
 		return {
 			x: v1.x - v2.x,
 			y: v1.y - v2.y,
 			z: v1.z - v2.z
-		};
+		}
 	}
 	/**
 	 * Calculates the dot product of two vectors.
-	 * @param {object} v1 - The first vector, e.g., {x: 1, y: 2, z: 3}.
-	 * @param {object} v2 - The second vector, e.g., {x: 4, y: 5, z: 6}.
-	 * @returns {number} The dot product (a scalar).
+	 * @param {Types['Vector']} v1
+	 * @param {Types['Vector']} v2
+	 * @returns {number} The dot product
 	 */
-	function dot(v1, v2) {
-		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	const dot = (v1, v2) => {
+		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
 	}
 
-	const rect1 = cuboid.points[0];
-	const rect2 = cuboid.points[1];
+	const [rect1, rect2] = magField.points
 
-	// 1. Define the prism's local coordinate system from one corner.
-	const p0 = rect1[0]; // Origin corner
+	const p0 = rect1[0]
 
-	// Vector for the width (along X in your data)
-	const u = subtract(rect1[3], p0);
+	// Vector width
+	const u = subtract(rect1[3], p0)
 
-	// Vector for the height (along Y in your data)
-	const v = subtract(rect2[0], p0);
+	// Vector height
+	const v = subtract(rect2[0], p0)
 
-	// Vector for the length (along Z in your data)
+	// Vector length
 	const w = subtract(rect1[1], p0);
 
-	// 2. Create a vector from the prism origin to the point to check.
+	// Vector from the prism origin to the point to check
 	const toPoint = subtract(point, p0);
 
-	// 3. Project the point's vector onto the prism's axes and check bounds.
-	const proj_u = dot(toPoint, u) / dot(u, u);
-	const proj_v = dot(toPoint, v) / dot(v, v);
-	const proj_w = dot(toPoint, w) / dot(w, w);
+	// Project the point's vector onto the prism's axes and check bounds.
+	const uProjection = dot(toPoint, u) / dot(u, u);
+	const vProjection = dot(toPoint, v) / dot(v, v);
+	const wProjection = dot(toPoint, w) / dot(w, w);
 
 	return (
-		proj_u >= 0 && proj_u <= 1 &&
-		proj_v >= 0 && proj_v <= 1 &&
-		proj_w >= 0 && proj_w <= 1
+		uProjection >= 0 && uProjection <= 1 &&
+		vProjection >= 0 && vProjection <= 1 &&
+		wProjection >= 0 && wProjection <= 1
 	);
 }
 
@@ -360,11 +345,10 @@ export const drawModel = (scene, tetrahedrons, magnetizationBlocks) => {
 		
 	colors = Array(positions.length / 3).fill(0)
 		.flatMap((_, i) => {
-			const green = [0, 0.5, 0, 1]
-			const limeGreen = [0.195, 0.801, 0.195, 1]
-			const darkGreen = [0, 0.2, 0, 1]
 			const lightGreen = [0, 1, 0, 1]
+			// #8792e5
 			const magBlue = [0.5294117647058824, 0.5725490196078431, 0.8980392156862745, 1]
+			// #f07777
 			const magRed = [0.9411764705882353, 0.4666666666666667, 0.4666666666666667, 1]
 
 			const currPoint = {x: positions[i*3], y: positions[i*3+1], z: positions[i*3+2]}
