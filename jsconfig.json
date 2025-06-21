@@ -1,0 +1,16 @@
+// This file is only for static checking when developing
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "module": "ESNext",
+    "target": "ESNext",
+    "strictNullChecks": false,
+  },
+  "include": [
+    "frontend/**/*",
+    "frontend/js/modules/types.d.ts",
+  ]
+}

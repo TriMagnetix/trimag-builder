@@ -1,78 +1,59 @@
 import { $ } from './modules/common.js'
 import Scene from './modules/scene.js'
-import { svg, path, svg2points } from './modules/svg-lib.js'
-import { triangle, invertedTriangle, arrangement } from './modules/gates.js'
 import {
-	extrudePoints,
-	createTetrahedrons,
 	drawModel,
 	centerScene,
 	arrangeModel,
 } from './modules/model-utils.js'
+import { Magnetization } from './types.js'
+
+/**
+ * Top level import from types .d.ts file so we 
+ * don't need to import every type individually
+ * @typedef {import('./types').Types} Types
+ */
 
 const scene = new Scene()
 	.project(2, $('canvas').width / $('canvas').height)
 
 const positionGrid = [
-	[true, false, true],
+	[false, false, false],
 	[false, true, false],
-	[false, true, false]
+	[false, false, false]
 ]
-
-/**
- * @typedef {('positive'|'negative'|'none')} MagnetizationState
- */
-
-/**
- * Represents the possible states of magnetization.
- * @enum {MagnetizationState}
- */
-const Magnetization = {
-  POSITIVE: 'positive',
-  NEGATIVE: 'negative',
-  NONE: 'none',
-};
-
-/** 
- * @typedef {Object} TriangleMagnetization
- * @property {MagnetizationState} a - The magnetization state of the topmost vertex in a triangle. 
- * This can be also be the top left vertex for a flipped triangle
- * @property {MagnetizationState} b - The magnetization state of the bottom right vertex in a triangle. 
- * This can be also be the top right vertex for a flipped triangle.
- * @property {MagnetizationState} c - The magnetization state of the bottom left vertex in a triangle. 
- * This can be also be the bottom vertex for a flipped triangle.
- */
 
 /**
  * 2D grid representing the magnetization states of the triangles.
  *
- * @type {Array<Array<TriangleMagnetization>>}
+ * @type {Array<Array<Types['TriangleMagnetization']>>}
  */
 const magnetizationGrid = Array.from({ length: positionGrid.length }, () =>
   Array.from({ length: positionGrid[0].length }, () => ({a: Magnetization.NONE, b: Magnetization.NONE, c: Magnetization.NONE}))
 );
 
-/**
- * @typedef {Object} Point
- * @property {boolean} exterior - If this point is visible when rendering.
- * @property {number} x - The x coordinate of the point.
- * @property {number} y - The y coordinate of the point.
- * @property {number} z - The z coordinate of the point.
- */
 
 /** 
- * @type {Array<Array<Point>>} 
+ * @type {Array<Array<Types['Point']>>} 
  * An array of tetrahedrons, where each tetrahedron is an 
  * array of 4 point objects. Each point is an object with 
  * `x`, `y`, and `z` properties representing the 3D coordinates.
 */
 let tetrahedrons = []
 
+
+/**
+ * @type {Array<Types['MagnetizationField']>}
+ */
+let magnetizationFields = [];
+
 const renderMesh = async () => {
+	const padding = { x: 0, y: 0 };
 	const componentModel = await (await fetch('res/triangle.json')).json()
-	tetrahedrons = arrangeModel(positionGrid.toReversed(), componentModel)
-	centerScene(scene, tetrahedrons)
-	drawModel(scene, tetrahedrons)
+	const result = arrangeModel(positionGrid.toReversed(), magnetizationGrid.toReversed(), componentModel, padding)
+	tetrahedrons = result.tetrahedrons
+	magnetizationFields = result.magnetizationFields
+	centerScene(scene, tetrahedrons, magnetizationFields)
+	drawModel(scene, tetrahedrons, magnetizationFields)
 }
 
 // Triangle grid controls
@@ -94,16 +75,19 @@ const toggleControls = ({ target }) => {
  *
  * @param {HTMLDivElement} cell - The div element representing a single cell within a grid structure.
  * @param {{x: number, y: number}} coordinates - The coordinates of the cell in the grid.
- * @returns {function({target: Element}): void} Event handler function.
+ * @returns {function(MouseEvent): void} Event handler function.
  */
-const toggleTriangle = (cell, coordinates) => ({ target }) => {
+const toggleTriangle = (cell, coordinates) => ({target}) => {
+	if (!(target instanceof Element)) {
+		return;
+	}
 	const MAG_BLUE = '#8792e5'
 	const MAG_RED = '#f07777'
 	const triangleSvgClassList = cell.querySelector("#magnetized-triangle-svg #triangle").classList
 	const targetClassList = target.classList
 	const { x, y } = coordinates
 	// This will be a, b, or c depending on the vertex clicked
-	const vertex = [target.id.slice(-1)]
+	const vertex = [target.id.slice(-1)].toString()
 	const triangleMagnetization = magnetizationGrid[x][y]
 	/* If we get a click on a vertex and the triangle is visible we 
 	want to cycle through magnetizations (positive, negative, neutral) */
@@ -141,7 +125,7 @@ const toggleTriangle = (cell, coordinates) => ({ target }) => {
 			triangleSvgClassList.remove('hidden')
 			triangleSvgClassList.add('visible')
 		} else {
-			throw new Error(`Triangle path element could not be found or has invalid class list: ${trianglePathSvgElement}`)
+			throw new Error(`Triangle path element could not be found or has invalid class list: ${triangleSvgClassList}`)
 		}
 	} 
 
@@ -252,7 +236,7 @@ const changeNumCols = ({ target }) => {
 	}
 
 	while (positionGrid[0].length < cols) {
-		positionGrid.forEach(row => row.push(0))
+		positionGrid.forEach(row => row.push(false))
 		magnetizationGrid.forEach(row => row.push({a: Magnetization.NONE, b: Magnetization.NONE, c: Magnetization.NONE}))
 	}
 
@@ -271,11 +255,11 @@ const generateNmeshFileBlob = () => {
 	const DELIM = ','
 
 	/**
-	 * @param {Point} point
+	 * @param {Types['Point']} point
 	 */
 	const generateKeyFromPoint = ({x, y, z}) => [x, y, z].join(DELIM)
 
-	/** @type {Array<Point>} 
+	/** @type {Array<Types['Point']>} 
 	 * An array to store unique nodes (points).
 	 */
 	const nodes = []
@@ -480,7 +464,7 @@ $('main').onmousemove = e => {
 		0,
 	)
 
-	drawModel(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons, magnetizationFields)
 }
 
 // Mouse-wheel to scale
@@ -489,7 +473,7 @@ $('main').onwheel = e => {
 
 	scene.clear()
 	scene.scale(e.deltaY > 0 ? 1.15 : 0.85)
-	drawModel(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons, magnetizationFields)
 }
 
 // Resize canvas when it's containers size changes
@@ -502,5 +486,5 @@ setInterval(() => {
 	scene
 		.resizeCanvas($('main').clientWidth, $('main').clientHeight)
 		.project(2, $('canvas').width / $('canvas').height)
-	drawModel(scene, tetrahedrons)
+	drawModel(scene, tetrahedrons, magnetizationFields)
 }, 100)
