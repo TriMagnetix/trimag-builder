@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 import docker
 import os
 import shutil
 import tempfile
+import json
+from schemas import magnetization_fields_list_schema
+from jsonschema import validate, ValidationError
 
 PORT = 1235
 container_dir = "/mnt"
@@ -13,12 +16,21 @@ docker_image_name = "nmag"
 docker_username = "nmag"
 client = docker.from_env()
 app = Flask(__name__)
-CORS(app, origins=['http://localhost:1234'])
+CORS(app, origins=["http://localhost:1234"])
 
 @app.route("/nsim", methods=["POST"])
 def run_command():
+    if "file" not in request.files:
+        return jsonify({"error": "Nmesh file wasn't found attached to request"})
+
     # Get the file from the request
     file = request.files["file"]
+
+    magnetization_fields = json.loads(request.form.get("magnetizationFields"))
+    try: 
+        validate(instance=magnetization_fields, schema=magnetization_fields_list_schema)
+    except ValidationError as e:
+        return jsonify({"error": "Failed to validate magnetization_fields json", "details": e.message})
 
     with tempfile.TemporaryDirectory() as temp_dir:
         # Save the neccassary python script within the tmp directory that will be mounted
@@ -28,7 +40,7 @@ def run_command():
         container = client.containers.run(
             image=docker_image_name,
             volumes={
-                temp_dir: { 'bind': container_dir, 'mode': 'rw'}
+                temp_dir: { "bind": container_dir, "mode": "rw"}
             },
             user=docker_username,
             # Run neccassary commands for nmag simulation.
