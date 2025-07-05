@@ -47,7 +47,7 @@ let tetrahedrons = []
 let magnetizationFields = [];
 
 const renderMesh = async () => {
-	const padding = { x: 0, y: 0 };
+	const padding = { x: 0, y: 0.00001 };
 	const componentModel = await (await fetch('res/triangle.json')).json()
 	const result = arrangeModel(positionGrid.toReversed(), magnetizationGrid.toReversed(), componentModel, padding)
 	tetrahedrons = result.tetrahedrons
