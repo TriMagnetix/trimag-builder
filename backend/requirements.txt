@@ -1,3 +1,4 @@
 flask
 docker
 flask_cors
+jsonschema

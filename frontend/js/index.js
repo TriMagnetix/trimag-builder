@@ -366,6 +366,7 @@ const runSimulation = async (e) => {
 
 	const body = new FormData()
 	body.append('file', generateNmeshFileBlob(), 'generated.nmesh')
+	body.append('magnetizationFields', JSON.stringify(magnetizationFields))
 
 	try {
 		const controller = new AbortController();
