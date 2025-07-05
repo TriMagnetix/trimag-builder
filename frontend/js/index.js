@@ -167,7 +167,7 @@ const getSvg = async (svgUrl) => {
 const loadSvgForCell = async (cell, coordinates) => {
 	const { x, y } = coordinates
 	const isInEvenRow = x % 2 === 0;
-	const svgUrl = `/img/magnetized-triangle${isInEvenRow ? "" : "-flipped"}.svg`
+	const svgUrl = `img/magnetized-triangle${isInEvenRow ? "" : "-flipped"}.svg`
 	const svgTextBody = await getSvg(svgUrl)
 	cell.innerHTML = svgTextBody
 	const trianglePathSvgElement = cell.querySelector("#magnetized-triangle-svg #triangle")
