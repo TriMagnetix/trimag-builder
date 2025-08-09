@@ -33,9 +33,6 @@ def run_command():
         return jsonify({"error": "Failed to validate magnetization_fields json", "details": e.message})
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        # Save the magnetization data into a file so it can be accessed via the nsim.py script 
-        with open(os.path.join(temp_dir, "magnetization_fields.json"), "w") as magnetization_fields_file:
-            json.dump(magnetization_fields, magnetization_fields_file)
         # Save the neccassary python script within the tmp directory that will be mounted
         shutil.copy("nsim.py", os.path.join(temp_dir, "nsim.py"))
         # Save the user provided nmesh file to the tmp directory that will be mounted
