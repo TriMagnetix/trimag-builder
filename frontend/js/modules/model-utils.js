@@ -128,52 +128,6 @@ const rotatePointXY = (point, center, angleDegrees) => {
 }
 
 /**
- * Checks if a point is inside an axis-aligned bounding box.
- * @param {Types['Point']} point - The point to check, e.g., {x, y, z}.
- * @param {Types['Bounds']} aabb - The AABB object.
- * @returns {boolean} - True if the point is inside, false otherwise.
- */
-const isPointInsideAABB = (point, aabb) => {
-    return (
-        point.x >= aabb.min.x && point.x <= aabb.max.x &&
-        point.y >= aabb.min.y && point.y <= aabb.max.y &&
-        point.z >= aabb.min.z && point.z <= aabb.max.z
-    );
-}
-
-/**
- * Calculates the axis-aligned bounding box for a set of 8 points. This makes it a lot quicker 
- * to see if a point is anywhere close to the rectangular cuboid (magnetization field).
- * https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
- * @param {Array<Array<Types['Point']>>} points - A list of two arrays, each containing 4 points.
- * @returns {Types['Bounds']} - The AABB.
- */
-const calculateAABB = (points) => {
-    const allPoints = points.flat();
-
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-    let minZ = Infinity;
-    let maxZ = -Infinity;
-
-    for (const point of allPoints) {
-        if (point.x < minX) minX = point.x;
-        if (point.x > maxX) maxX = point.x;
-        if (point.y < minY) minY = point.y;
-        if (point.y > maxY) maxY = point.y;
-        if (point.z < minZ) minZ = point.z;
-        if (point.z > maxZ) maxZ = point.z;
-    }
-
-    return {
-        min: { x: minX, y: minY, z: minZ },
-        max: { x: maxX, y: maxY, z: maxZ }
-    };
-}
-
-/**
  * Given a triangle magnetization points and offsets, calculates the magnetic field around each point. 
  * This will be a rectangular cuboid so it will contain 8 points and a magnetization.
  * @param {Types['TriangleMagnetization']} triangleMagnetization
@@ -231,33 +185,27 @@ const getMagnetizationFields = (triangleMagnetization, bounds, armBounds, isEven
 	const magnetizationFields = [];
 	if (triangleMagnetization.a !== Magnetization.NONE) {
 		// offset each point and add magnetization to object and add to array
-		const points = regtangularCuboidPointA.map((square) => square.map((point) => ({ ...point, x: point.x + widthOffset, y: point.y + heightOffset })));
 		magnetizationFields.push({
 			magnetization: triangleMagnetization.a,
-			points,
-			aabb: calculateAABB(points),
+			points: regtangularCuboidPointA.map((square) => square.map((point) => ({...point, x: point.x + widthOffset, y: point.y + heightOffset}))),
 		})
 	}
 	if (triangleMagnetization.b !== Magnetization.NONE) {
 		const regtangularCuboidPointB = regtangularCuboidPointA.map((square) => {
 			return square.map((point) => rotatePointXY(point, center, -120))
 		})
-		const points = regtangularCuboidPointB.map((square) => square.map((point) => ({ ...point, x: point.x + widthOffset, y: point.y + heightOffset })));
 		magnetizationFields.push({
 			magnetization: triangleMagnetization.b,
-			points,
-			aabb: calculateAABB(points),
+			points: regtangularCuboidPointB.map((square) => square.map((point) => ({...point, x: point.x + widthOffset, y: point.y + heightOffset}))),
 		})
 	}
 	if (triangleMagnetization.c !== Magnetization.NONE) {
 		const regtangularCuboidPointC = regtangularCuboidPointA.map((square) => {
 			return square.map((point) => rotatePointXY(point, center, 120))
 		})
-		const points = regtangularCuboidPointC.map((square) => square.map((point) => ({ ...point, x: point.x + widthOffset, y: point.y + heightOffset })))
 		magnetizationFields.push({
 			magnetization: triangleMagnetization.c,
-			points,
-			aabb: calculateAABB(points),
+			points: regtangularCuboidPointC.map((square) => square.map((point) => ({...point, x: point.x + widthOffset, y: point.y + heightOffset}))),
 		})
 	}
 	return magnetizationFields;
@@ -361,13 +309,6 @@ const isPointInsidePrism = (point, magField) => {
 	 */
 	const dot = (v1, v2) => {
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
-	}
-
-	/* Do a quick check if a point is inside the aabb. If it isn't we do
-	not have to do computationally harder work to figure that out. 
-	If it is then we need to check if its exactly within the bounds. */
-	if (!isPointInsideAABB(point, magField.aabb)) {
-		return false;
 	}
 
 	const [rect1, rect2] = magField.points

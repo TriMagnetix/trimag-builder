@@ -25,21 +25,6 @@ point_schema = {
     "description": "Represents a point in 3D space, with an optional exterior flag."
 }
 
-# AABB Interface Schema
-# @interface Bounds
-# @property min - The minimum x, y, and z coordinates of the bounding box.
-# @property max - The maximum x, y, and z coordinates of the bounding box.
-aabb_schema = {
-    "type": "object",
-    "properties": {
-        "min": point_schema,
-        "max": point_schema
-    },
-    "required": ["min", "max"],
-    "additionalProperties": False,
-    "description": "Represents an axis-aligned bounding box defined by a minimum and maximum point."
-}
-
 # MagnetizationField Interface Schema
 # @interface MagnetizationField
 # @property points -
@@ -60,10 +45,9 @@ magnetization_field_schema = {
             "minItems": 2, # Assuming outer array is always length 2 for min/max bounds or similar
             "maxItems": 2
         },
-        "aabb": aabb_schema,
         "magnetization": magnetization_enum_schema
     },
-    "required": ["points", "aabb", "magnetization"],
+    "required": ["points", "magnetization"],
     "additionalProperties": False,
     "description": "Represents a field of magnetization within a defined set of points."
 }
