@@ -1,5 +1,7 @@
 # Magnetization Enum Schema
 # Represents the possible states of magnetization.
+# Positive means the magnetization is pointing outwards
+# from the arms. Negative means the opposite
 magnetization_enum_schema = {
     "type": "string",
     "enum": ["positive", "negative", "none"],
@@ -25,7 +27,25 @@ point_schema = {
     "description": "Represents a point in 3D space, with an optional exterior flag."
 }
 
-# AABB Interface Schema
+# Vector Interface Schema
+# @interface Vector
+# @property x - Width of the vector
+# @property y - Height of the vector
+# @property z - Length of the vector
+vector_schema = {
+    "type": "object",
+    "properties": {
+        "x": {"type": "number", "description": "Width of the vector."},
+        "y": {"type": "number", "description": "Height of the vector."},
+        "z": {"type": "number", "description": "Length of the vector."}
+    },
+    "required": ["x", "y", "z"],
+    "additionalProperties": False,
+    "description": "Represents a vector in 3D space."
+}
+
+
+# AABB Interface Schema (Bounds)
 # @interface Bounds
 # @property min - The minimum x, y, and z coordinates of the bounding box.
 # @property max - The maximum x, y, and z coordinates of the bounding box.
@@ -42,9 +62,10 @@ aabb_schema = {
 
 # MagnetizationField Interface Schema
 # @interface MagnetizationField
-# @property points -
-# Outer array of length 2 and inner arrays of length 4 to represent the bounds of the rectangular cuboid
+# @property points - Outer array of length 2 and inner arrays of length 4 to represent the bounds of the rectangular cuboid
+# @property aabb - Axis aligned bounding box
 # @property magnetization - Negative or positive magnetization
+# @property vector - the vector representing the direction of the magnetization field
 magnetization_field_schema = {
     "type": "object",
     "properties": {
@@ -54,16 +75,17 @@ magnetization_field_schema = {
             "items": {
                 "type": "array",
                 "items": point_schema,
-                "minItems": 4, # Assuming inner arrays are always length 4 based on typical cuboid representation
+                "minItems": 4,  # Assuming inner arrays are always length 4 based on typical cuboid representation
                 "maxItems": 4
             },
-            "minItems": 2, # Assuming outer array is always length 2 for min/max bounds or similar
+            "minItems": 2,  # Assuming outer array is always length 2 for min/max bounds or similar
             "maxItems": 2
         },
         "aabb": aabb_schema,
-        "magnetization": magnetization_enum_schema
+        "magnetization": magnetization_enum_schema,
+        "vector": vector_schema
     },
-    "required": ["points", "aabb", "magnetization"],
+    "required": ["points", "aabb", "magnetization", "vector"],
     "additionalProperties": False,
     "description": "Represents a field of magnetization within a defined set of points."
 }
