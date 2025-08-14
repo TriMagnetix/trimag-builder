@@ -49,7 +49,7 @@ let magnetizationFields = [];
 const renderMesh = async () => {
 	const padding = { x: 0, y: 0.00001 };
 	const componentModel = await (await fetch('res/triangle.json')).json()
-	const result = arrangeModel(positionGrid.toReversed(), magnetizationGrid.toReversed(), componentModel, padding)
+	const result = arrangeModel(positionGrid, magnetizationGrid, componentModel, padding)
 	tetrahedrons = result.tetrahedrons
 	magnetizationFields = result.magnetizationFields
 	centerScene(scene, tetrahedrons, magnetizationFields)
@@ -193,7 +193,7 @@ const makeTriangleGrid = async () => {
 		Array(cols).fill(0).map(_ => 'auto').join(' ')
 
 	// Rows are read backwards to match the drawing coordinate system
-	for (let i = 0; i < rows; i++) {
+	for (let i = rows - 1; i >= 0; i--) {
 		for (let j = 0; j < cols; j++) {
 			const cell = document.createElement('div')
 			const coordinates = { x: i, y: j }
@@ -213,12 +213,12 @@ const changeNumRows = ({ target }) => {
 	const cols = Number.parseInt($('#cols-input').value)
 
 	while (positionGrid.length > rows) {
-		positionGrid.splice(-1)
-		magnetizationGrid.splice(-1)
+		positionGrid.pop()
+		magnetizationGrid.pop()
 	}
 
 	while (positionGrid.length < rows) {
-		positionGrid.push(Array(cols).fill(0))
+		positionGrid.push(Array(cols).fill(false))
 		magnetizationGrid.push(Array(cols).fill({a: Magnetization.NONE, b: Magnetization.NONE, c: Magnetization.NONE}))
 	}
 
