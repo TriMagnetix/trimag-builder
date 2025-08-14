@@ -52,10 +52,12 @@ interface Vector {
  * @interface MagnetizationField
  * @property points -
  * Outer array of length 2 and inner arrays of length 4 to represent the bounds of the rectangular cuboid
+ * @property aabb - Axis aligned bounding box
  * @property magnetization - Negative or positive magnetization
  */
 interface MagnetizationField {
   points: Array<Array<Point>>;
+  aabb: AABB;
   magnetization: Magnetization;
 }
 
@@ -63,6 +65,8 @@ interface Bounds {
   min: Point;
   max: Point;
 }
+
+type AABB = Bounds;
 
 /* Create one top level object to export so each type 
 doesn't need to be imported individually in the js files */
