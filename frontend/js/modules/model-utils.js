@@ -174,6 +174,40 @@ const calculateAABB = (points) => {
 }
 
 /**
+ * @param {Types['Magnetization']} magnetization
+ * @param {boolean} isEvenRow
+ * @param {"a" | "b" | "c"} armLetter
+ * @returns {Types['Vector']}
+ */
+const calculateVector = (magnetization, isEvenRow, armLetter) => {
+	// For the base vectors assume that arms are pointing outward
+	/** @type {Types['Vector']} */
+	const aBaseVector = { x: 0, y: 1, z:0 }
+	/** @type {Types['Vector']} */
+	const bBaseVector = { x: Math.sqrt(3)/2, y: -1/2, z:0 }
+	/** @type {Types['Vector']} */
+	const cBaseVector = { x: -Math.sqrt(3)/2, y: -1/2, z:0 }
+
+	/** @type {Types['Vector']} */
+	let vector;
+
+	if (armLetter === "a") {
+		vector = aBaseVector
+	} else if (armLetter === "b") {
+		vector = bBaseVector
+	} else if (armLetter === "c") {
+		vector = cBaseVector
+	} else {
+		throw Error(`Invalid arm letter passed in: ${armLetter}`)
+	}
+
+	if (magnetization === Magnetization.POSITIVE && isEvenRow || magnetization === Magnetization.NEGATIVE && !isEvenRow) {
+		return vector
+	}
+	return  {x: vector.x * -1, y: vector.y * -1, z: vector.z }
+}
+
+/**
  * Given a triangle magnetization points and offsets, calculates the magnetic field around each point. 
  * This will be a rectangular cuboid so it will contain 8 points and a magnetization.
  * @param {Types['TriangleMagnetization']} triangleMagnetization
@@ -236,6 +270,7 @@ const getMagnetizationFields = (triangleMagnetization, bounds, armBounds, isEven
 			magnetization: triangleMagnetization.a,
 			points,
 			aabb: calculateAABB(points),
+			vector: calculateVector(triangleMagnetization.a, isEvenRow, "a")
 		})
 	}
 	if (triangleMagnetization.b !== Magnetization.NONE) {
@@ -247,6 +282,7 @@ const getMagnetizationFields = (triangleMagnetization, bounds, armBounds, isEven
 			magnetization: triangleMagnetization.b,
 			points,
 			aabb: calculateAABB(points),
+			vector: calculateVector(triangleMagnetization.b, isEvenRow, "b"),
 		})
 	}
 	if (triangleMagnetization.c !== Magnetization.NONE) {
@@ -258,6 +294,7 @@ const getMagnetizationFields = (triangleMagnetization, bounds, armBounds, isEven
 			magnetization: triangleMagnetization.c,
 			points,
 			aabb: calculateAABB(points),
+			vector: calculateVector(triangleMagnetization.c, isEvenRow, "c"),
 		})
 	}
 	return magnetizationFields;
