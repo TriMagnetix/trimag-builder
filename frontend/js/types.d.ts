@@ -1,5 +1,7 @@
 /**
  * Represents the possible states of magnetization.
+ * Positive means the magnetization is pointing outwards 
+ * from the arms. Negative means the opposite
  */
 enum Magnetization {
   POSITIVE = 'positive',
@@ -54,11 +56,13 @@ interface Vector {
  * Outer array of length 2 and inner arrays of length 4 to represent the bounds of the rectangular cuboid
  * @property aabb - Axis aligned bounding box
  * @property magnetization - Negative or positive magnetization
+ * @property vector - the vector representing the direction of the magnetization field
  */
 interface MagnetizationField {
   points: Array<Array<Point>>;
   aabb: AABB;
   magnetization: Magnetization;
+  vector: Vector;
 }
 
 interface Bounds {

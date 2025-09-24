@@ -1,6 +1,7 @@
 import nmag
 from nmag import SI
 import json
+import random
 
 class Vector3:
     def __init__(self, x, y, z):
@@ -25,7 +26,6 @@ Args:
     aabb (dict): The AABB dictionary with 'min' and 'max' keys.
 """
 def is_point_inside_aabb(point, aabb):
-
     x_min = aabb['min']['x']
     x_max = aabb['max']['x']
     y_min = aabb['min']['y']
@@ -34,9 +34,9 @@ def is_point_inside_aabb(point, aabb):
     z_max = aabb['max']['z']
     
     return (
-        point.x >= x_min and point.x <= x_max and
-        point.y >= y_min and point.y <= y_max and
-        point.z >= z_min and point.z <= z_max
+        point['x'] >= x_min and point['x'] <= x_max and
+        point['y'] >= y_min and point['y'] <= y_max and
+        point['z'] >= z_min and point['z'] <= z_max
     )
 
 """
@@ -85,10 +85,18 @@ with open("magnetization_fields.json", "r") as magnetization_fields_file:
     magnetization_fields = json.load(magnetization_fields_file)
 
 def set_initial_mag(point):
+    pointObj = {
+        "x": point[0],
+        "y": point[1],
+        "z": point[2],
+    }
     for magField in magnetization_fields:
-        if is_point_inside_mag_field(point, magField):
-            return [0,1,0] # TODO: calculate the magnetization vector based on polarity and position
-    return [0,0,0]
+        if is_point_inside_mag_field(pointObj, magField):
+            vector = magField["vector"]
+            return [vector.x, vector.y, vector.z]
+    # Set a random vector because a 0 vector ends up in a divide 
+    # by 0 error because the regions aren't proprerly tagged
+    return [random.random() for _ in range(3)]
 
 #create simulation object
 sim = nmag.Simulation()
@@ -104,7 +112,7 @@ sim.load_mesh("generated.nmesh.h5",
               unit_length = SI(1e-9, "m"))
 
 # set initial magnetisation
-sim.set_m([1,0,0])
+sim.set_m(set_initial_mag)
 
 # set external field
 sim.set_H_ext([0,0,0], SI("A/m"))
